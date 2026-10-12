@@ -12,7 +12,7 @@ options(width = 80)
 ## Proportion of missing onset dates where date inferred by Garske et al are in 95% Credible Sets
 
 ```{r, echo = FALSE}
-onset_missing <- which(is.na(data$onset))
+onset_missing <- which(is.na(samples$data$onset))
 is_in_credible_set <- 
   unlist(lapply(onset_missing, 
                 function(i) data_with_onset_inferred$onset_inferred[i] %in%
