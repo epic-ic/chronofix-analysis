@@ -9,13 +9,35 @@ options(width = 80)
 ```
 
 
-## Proportion of missing onset dates where date inferred by Garske et al are in 95% Credible Sets
+## Number of missing onset dates by group
 
 ```{r, echo = FALSE}
 onset_missing <- which(is.na(samples$data$onset))
+n_onset_missing_by_group <- table(samples$data$group[onset_missing])
+n_onset_missing_by_group
+```
+
+## Percentage of onset dates missing by group
+
+```{r, echo = FALSE}
+pct_onset_missing_by_group <- 
+  n_onset_missing_by_group / table(samples$data$group) * 100
+pct_onset_missing_by_group
+```
+
+## Percentage of missing onset dates where date inferred by Garske et al are in 95% Credible Sets
+### By group
+```{r, echo = FALSE}
 is_in_credible_set <- 
   unlist(lapply(onset_missing, 
                 function(i) data_with_onset_inferred$onset_inferred[i] %in%
                   calc_credible_set(samples, i, 1, 0.95)))
-sum(is_in_credible_set) / length(is_in_credible_set)
+n_in_credible_set_by_group <- 
+  table(samples$data$group[onset_missing[is_in_credible_set]])
+n_in_credible_set_by_group / n_onset_missing_by_group * 100
+```
+
+### All groups
+```{r, echo = FALSE}
+sum(n_in_credible_set_by_group) / sum(n_onset_missing_by_group) * 100
 ```
