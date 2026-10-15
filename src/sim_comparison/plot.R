@@ -176,6 +176,7 @@ plot_sensitivity_figure <- function(errors_summary, target_threshold = 0.5) {
           strip.text = element_text(size = 9, face = "bold", angle = 270),
           axis.text.x = element_text(angle = 45, hjust = 1),
           axis.title.y = element_text(margin = margin(r = 10, l = 10)),
+          plot.title = element_text(size = 10),
           legend.position = "none")
   
   # event plot grid
@@ -201,6 +202,7 @@ plot_sensitivity_figure <- function(errors_summary, target_threshold = 0.5) {
           panel.border = element_rect(colour = "darkgrey", fill = NA,
                                       linewidth = 1),
           panel.grid = element_blank(),
+          plot.title = element_text(size = 10),
           legend.title = element_text(margin = margin(b = 15)))
   
   combined_plot <- p_indiv + p_event + 
@@ -253,6 +255,7 @@ plot_specificity_figure <- function(errors_summary, target_threshold = 0.5) {
           strip.text = element_text(size = 9, face = "bold", angle = 270),
           axis.text.x = element_text(angle = 45, hjust = 1),
           axis.title.y = element_text(margin = margin(r = 10, l = 10)),
+          plot.title = element_text(size = 10),
           legend.position = "none")
 
   p_event <- ggplot(event_data, aes(x = scenario, y = event,
@@ -277,6 +280,7 @@ plot_specificity_figure <- function(errors_summary, target_threshold = 0.5) {
           panel.border = element_rect(colour = "darkgrey", fill = NA,
                                       linewidth = 1),
           panel.grid = element_blank(),
+          plot.title = element_text(size = 10),
           legend.title = element_text(margin = margin(b = 15)))
 
   combined_plot <- p_indiv + p_event +
@@ -335,6 +339,7 @@ plot_all_specificity <- function(errors_summary) {
                                         fill = NA, linewidth = 1),
             strip.text.y = element_text(size = 9, face = "bold", angle = 270),
             axis.title.y = element_text(margin = margin(r = 10, l = 10)),
+            plot.title = element_text(size = 10),
             legend.position = "none")
     
     p_event <- ggplot(event_data, aes(x = scenario, y = event,
@@ -357,6 +362,7 @@ plot_all_specificity <- function(errors_summary) {
                                         fill = NA, linewidth = 1),
             strip.text.y = element_text(size = 9, face = "bold", angle = 270),
             panel.grid = element_blank(),
+            plot.title = element_text(size = 10),
             legend.title = element_text(margin = margin(b = 15)))
     
     if (is_bottom_row) {
