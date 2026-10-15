@@ -18,15 +18,15 @@ comparison_scenarios <- list(
 
 scenario_labels <- c(
   "baseline" = "Baseline",
-  "misspecify_lognormal" = "Lognormal fit to gamma data",
+  "misspecify_lognormal" = "Misspecify lognormal",
   
   # workaround to add some whitespace between scenario groups in the legend
   "gap1" = " ",
   
-  "low_missingness" = "Low missingness (0.05)",
   "no_missing" = "Errors only (0.05)",
   "no_error" = "Missing dates only (0.2)",
   "no_error_no_missing" = "No errors or missing dates",
+  "low_missingness" = "Low missingness (0.05)",
   
   "gap2" = "  ",
   
@@ -38,7 +38,7 @@ scenario_labels <- c(
   "very_small_sample" = "Very small groups (n = 10)",
   "small_sample" = "Small groups (n = 20)",
   "moderate_sample" = "Moderate groups (n = 50)",
-  "very_large_sample" = "Very large groups (n = 500)",
+  "very_large_sample" = "Very large groups (n = 250)",
   
   "gap4" = "    ",
   
@@ -53,13 +53,13 @@ scenario_labels <- c(
   "gap6" = "      ",
   
   "lognormal_delays" = "Lognormal delays",
-  "misspecify_gamma" = "Gamma fit to lognormal data",
+  "misspecify_gamma" = "Misspecify gamma",
   "same_means" = "Same mean delay (7 days)"
 )
 
 scenario_colours <- c(
   "Baseline" = "#000000",
-  "Lognormal fit to gamma data" = "#00A0B0",
+  "Misspecify lognormal" = "#00A0B0",
   
   # blank for the gaps in legend
   " " = "transparent",
@@ -69,10 +69,10 @@ scenario_colours <- c(
   "     " = "transparent",
   "      " = "transparent",
   
-  "Low missingness (0.05)" = "#6BAED6",
-  "Errors only (0.05)" = "#3182BD",
-  "Missing dates only (0.2)" = "#08519C",
-  "No errors or missing dates" = "#08306B",
+  "Errors only (0.05)" = "#6BAED6",
+  "Missing dates only (0.2)" = "#3182BD",
+  "No errors or missing dates" = "#08519C",
+  "Low missingness (0.05)" = "#08306B",
   
   "Low error (0.02)" = "#E0A21F",
   "High error (0.2)" = "#7F4F0A",
@@ -80,7 +80,7 @@ scenario_colours <- c(
   "Very small groups (n = 10)" = "#FB7B5B",
   "Small groups (n = 20)" = "#EF3B2C",
   "Moderate groups (n = 50)" = "#CB181D",
-  "Very large groups (n = 500)" = "#67000D",
+  "Very large groups (n = 250)" = "#67000D",
   
   "Short delays (0.5x baseline)" = "#74C476",
   "Long delays (2x baseline)" = "#00441B",
@@ -89,7 +89,7 @@ scenario_colours <- c(
   "High variability (2x baseline cv)" = "#3F007D",
   
   "Lognormal delays" = "#F768A1",
-  "Gamma fit to lognormal data" = "#F2A900",
+  "Misspecify gamma" = "#F2A900",
   "Same mean delay (7 days)" = "#7A0177"
 )
 
