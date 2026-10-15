@@ -39,17 +39,26 @@ for (s in actual_scenarios) {
   )
 }
 
-orderly_artefact(files = c("figures/coverage_and_bias_mean.pdf",
-                          "figures/coverage_and_bias_cv.pdf",
-                          "figures/coverage_and_bias_q95.pdf",
-                          "figures/sensitivity_50.pdf",
-                          "figures/sensitivity_95.pdf",
-                          "figures/specificity_50.pdf",
-                          "figures/specificity_95.pdf",
-                          "figures/specificity_50_and_95.pdf"),
+orderly_artefact(files = c("figures_pdf/coverage_and_bias_mean.pdf",
+                           "figures_pdf/coverage_and_bias_cv.pdf",
+                           "figures_pdf/coverage_and_bias_q95.pdf",
+                           "figures_pdf/sensitivity_50.pdf",
+                           "figures_pdf/sensitivity_95.pdf",
+                           "figures_pdf/specificity_50.pdf",
+                           "figures_pdf/specificity_95.pdf",
+                           "figures_pdf/specificity_50_and_95.pdf",
+                           "figures_tiff/coverage_and_bias_mean.tiff",
+                           "figures_tiff/coverage_and_bias_cv.tiff",
+                           "figures_tiff/coverage_and_bias_q95.tiff",
+                           "figures_tiff/sensitivity_50.tiff",
+                           "figures_tiff/sensitivity_95.tiff",
+                           "figures_tiff/specificity_50.tiff",
+                           "figures_tiff/specificity_95.tiff",
+                           "figures_tiff/specificity_50_and_95.tiff"),
                  description = "Publication figures")
 
-dir.create("figures", recursive = TRUE, showWarnings = FALSE)
+dir.create("figures_pdf", recursive = TRUE, showWarnings = FALSE)
+dir.create("figures_tiff", recursive = TRUE, showWarnings = FALSE)
 
 # Bind all the individual scenarios together -----------------------------------
 pars_summary <- combine_df(scenarios, "pars_summary")
@@ -73,41 +82,65 @@ if (pars$comparison == "misspecification_scenarios") {
 }
 
 # Coverage and relative bias plot for Mean
-ggsave("figures/coverage_and_bias_mean.pdf",
+ggsave("figures_pdf/coverage_and_bias_mean.pdf",
+       plot_performance_figure(pars_summary, target_role = "Mean"), 
+       width = w_perf, height = h_perf)
+ggsave("figures_tiff/coverage_and_bias_mean.tiff",
        plot_performance_figure(pars_summary, target_role = "Mean"), 
        width = w_perf, height = h_perf)
 
 # Coverage and relative bias plot for CV
-ggsave("figures/coverage_and_bias_cv.pdf",
+ggsave("figures_pdf/coverage_and_bias_cv.pdf",
+       plot_performance_figure(pars_summary, target_role = "CV"), 
+       width = w_perf, height = h_perf)
+ggsave("figures_tiff/coverage_and_bias_cv.tiff",
        plot_performance_figure(pars_summary, target_role = "CV"), 
        width = w_perf, height = h_perf)
 
 # Coverage and relative bias plot for 95th quantile
-ggsave("figures/coverage_and_bias_q95.pdf",
+ggsave("figures_pdf/coverage_and_bias_q95.pdf",
+       plot_performance_figure(pars_summary, target_role = "95th Quantile"), 
+       width = w_perf, height = h_perf)
+ggsave("figures_tiff/coverage_and_bias_q95.tiff",
        plot_performance_figure(pars_summary, target_role = "95th Quantile"), 
        width = w_perf, height = h_perf)
 
 # Sensitivity - 50% threshold
-ggsave("figures/sensitivity_50.pdf",
+ggsave("figures_pdf/sensitivity_50.pdf",
+       plot_sensitivity_figure(errors_summary, target_threshold = 0.5),
+       width = w_sens, height = h_sens)
+ggsave("figures_tiff/sensitivity_50.tiff",
        plot_sensitivity_figure(errors_summary, target_threshold = 0.5),
        width = w_sens, height = h_sens)
 
 # Sensitivity - 95% threshold
-ggsave("figures/sensitivity_95.pdf",
+ggsave("figures_pdf/sensitivity_95.pdf",
+       plot_sensitivity_figure(errors_summary, target_threshold = 0.95),
+       width = w_sens, height = h_sens)
+ggsave("figures_tiff/sensitivity_95.tiff",
        plot_sensitivity_figure(errors_summary, target_threshold = 0.95),
        width = w_sens, height = h_sens)
 
 # Specificity - 50% threshold
-ggsave("figures/specificity_50.pdf",
+ggsave("figures_pdf/specificity_50.pdf",
+       plot_specificity_figure(errors_summary, target_threshold = 0.5),
+       width = w_sens, height = h_sens)
+ggsave("figures_tiff/specificity_50.tiff",
        plot_specificity_figure(errors_summary, target_threshold = 0.5),
        width = w_sens, height = h_sens)
 
 # Specificity - 95% threshold
-ggsave("figures/specificity_95.pdf",
+ggsave("figures_pdf/specificity_95.pdf",
+       plot_specificity_figure(errors_summary, target_threshold = 0.95),
+       width = w_sens, height = h_sens)
+ggsave("figures_tiff/specificity_95.tiff",
        plot_specificity_figure(errors_summary, target_threshold = 0.95),
        width = w_sens, height = h_sens)
 
 # Specificity - both thresholds in the same figure
-ggsave("figures/specificity_50_and_95.pdf",
+ggsave("figures_pdf/specificity_50_and_95.pdf",
+       plot_all_specificity(errors_summary),
+       width = w_sens, height = h_sens_both)
+ggsave("figures_tiff/specificity_50_and_95.tiff",
        plot_all_specificity(errors_summary),
        width = w_sens, height = h_sens_both)
