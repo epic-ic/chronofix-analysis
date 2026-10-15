@@ -21,18 +21,17 @@ plot_error_type <- function(samples) {
                      labels = global_group_labels)
   df$event <- factor(df$event, levels =  global_event_levels,
                      labels = global_event_labels)
-  type_cols <- c("correct" = "#C1E1A7",
-                 "missing" =  "#A7C1E1",
-                 "possible error" = "#FCFFCD",
-                 "likely error" = "#FAC898",
-                 "highly likely error" = "#E58782")
-  
   
   ggplot(df, aes(fill = type, y = event, x = value)) + 
-    geom_bar(position = "fill", stat = "identity", show.legend = TRUE) +
-    scale_fill_manual(values = type_cols) +
+    geom_bar(position = position_fill(reverse = TRUE),
+             stat = "identity", show.legend = TRUE) +
+    scale_fill_manual(values = error_type_cols) +
     scale_y_discrete(drop = FALSE, limits = rev) +
     facet_grid(rows = vars(group)) +
+    scale_x_continuous(labels = scales::percent) +
+    labs(title = "Date classification",
+         y = "",
+         x = "") +
     theme_bw() +
     theme(strip.text = element_text(size = 9, face = "bold", angle = 270),
           panel.border = element_rect(colour = "darkgrey", fill = NA,
@@ -140,18 +139,15 @@ plot_est_date_diff <- function(samples, absolute = FALSE){
   df$event <- factor(df$event, levels =  global_event_levels,
                      labels = global_event_labels)
   
-  type_cols <- c("correct" = "#C1E1A7",
-                 "missing" =  "#A7C1E1",
-                 "possible error" = "#FCFFCD",
-                 "likely error" = "#FAC898",
-                 "highly likely error" = "#E58782")
-  
   ggplot(df, aes(colour = type, y = event, x = mean_date_diff)) + 
     geom_jitter(width = 0, height = 0.3, show.legend = FALSE) +
-    scale_colour_manual(values = type_cols) +
+    scale_colour_manual(values = error_type_cols) +
     scale_y_discrete(drop = FALSE, limits = rev) +
     facet_grid(rows = vars(group)) +
     theme_bw() +
+    labs(title = "Mean difference between estimated and observed date",
+         y = "",
+         x = "") +
     theme(strip.text = element_text(size = 9, face = "bold", angle = 270),
           panel.border = element_rect(colour = "darkgrey", fill = NA,
                                       linewidth = 1))
@@ -178,5 +174,12 @@ global_group_levels <- c("community-alive", "community-dead",
                          "hospitalised-alive", "hospitalised-dead")
 global_group_labels <- tools::toTitleCase(gsub("-", " ", global_group_levels))
 
-global_event_levels <- c("onset", "report", "hospitalisation", "discharge", "death")
+global_event_levels <- 
+  c("onset", "report", "hospitalisation", "discharge", "death")
 global_event_labels <- tools::toTitleCase(global_event_levels)
+
+error_type_cols <- c("correct" = "#2E6F40",
+                     "missing" =  "#00008B",
+                     "possible error" = "#F7BD03",
+                     "likely error" = "#C76E00",
+                     "highly likely error" = "#7C0A02")
