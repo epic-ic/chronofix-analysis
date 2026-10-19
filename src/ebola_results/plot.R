@@ -6,6 +6,7 @@ plot_events <- function(samples) {
     plot_layout(ncol = 2, widths = c(1, 1), guides = "collect")
 }
 
+
 plot_error_type <- function(samples) {
   group <- attr(samples$data, "group")
   
@@ -117,7 +118,6 @@ plot_est_date_diff <- function(samples, absolute = FALSE){
   } else {
     mean_est_date_diff <- apply(est_date_diff, c(1, 2), mean)
   }
-  
   
   delay_map <- samples$delay_map
   groups <- unique(unlist(samples$delay_map$group))

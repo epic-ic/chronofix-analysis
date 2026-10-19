@@ -5,6 +5,8 @@ library(rmarkdown)
 
 orderly::orderly_shared_resource("util.R")
 source("util.R")
+orderly::orderly_resource("plot.R")
+source("plot.R")
 orderly::orderly_resource("support.R")
 source("support.R")
 
@@ -27,7 +29,8 @@ orderly_artefact(description = "paper numbers",
 
 orderly_artefact(description = "figures",
                  files = c("figures/ebola_delays_ribbon.pdf",
-                           "figures/ebola_delays_spaghetti.pdf"))
+                           "figures/ebola_delays_spaghetti.pdf",
+                           "figures/ebola_dates_and_errors.pdf"))
 
 samples <- readRDS("inputs/samples.rds")
 data_with_onset_inferred <- readRDS("inputs/data_with_onset_inferred.rds")
@@ -43,6 +46,9 @@ ggsave("figures/ebola_delays_ribbon.pdf",
        width = 20, height = 12)
 ggsave("figures/ebola_delays_spaghetti.pdf", 
        chronofix::chronofix_plot_delays(samples, plot_style = "spaghetti"),
+       width = 20, height = 12)
+ggsave("figures/ebola_dates_and_errors.pdf", 
+       chronofix::chronofix_plot_events(samples),
        width = 20, height = 12)
 
 ## Render rmd
