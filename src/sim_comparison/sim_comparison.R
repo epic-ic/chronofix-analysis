@@ -39,109 +39,108 @@ for (s in actual_scenarios) {
   )
 }
 
+orderly_artefact(files = c("figures_pdf/coverage_and_bias_mean.pdf",
+                           "figures_pdf/coverage_and_bias_cv.pdf",
+                           "figures_pdf/coverage_and_bias_q95.pdf",
+                           "figures_pdf/sensitivity_50.pdf",
+                           "figures_pdf/sensitivity_95.pdf",
+                           "figures_pdf/specificity_50.pdf",
+                           "figures_pdf/specificity_95.pdf",
+                           "figures_pdf/specificity_50_and_95.pdf",
+                           "figures_tiff/coverage_and_bias_mean.tiff",
+                           "figures_tiff/coverage_and_bias_cv.tiff",
+                           "figures_tiff/coverage_and_bias_q95.tiff",
+                           "figures_tiff/sensitivity_50.tiff",
+                           "figures_tiff/sensitivity_95.tiff",
+                           "figures_tiff/specificity_50.tiff",
+                           "figures_tiff/specificity_95.tiff",
+                           "figures_tiff/specificity_50_and_95.tiff"),
+                 description = "Publication figures")
 
-
-orderly_artefact(files = c("figures/ess_plot.pdf",
-                          "figures/coverage_plot.pdf",
-                          #"figures/bias_plot.pdf",
-                          "figures/posterior_delays.pdf",
-                           "figures/posterior_prob_error.pdf",
-                           "figures/sensitivity_events.pdf",
-                           "figures/sensitivity_individuals.pdf",
-                          #"figures/coverage_by_group.pdf",
-                          "figures/coverage_and_bias_mean.pdf",
-                          "figures/coverage_and_bias_cv.pdf",
-                          "figures/coverage_and_bias_q95.pdf"),
-                 description = "Diagnostic figures")
-
-dir.create("figures", recursive = TRUE, showWarnings = FALSE)
+dir.create("figures_pdf", recursive = TRUE, showWarnings = FALSE)
+dir.create("figures_tiff", recursive = TRUE, showWarnings = FALSE)
 
 # Bind all the individual scenarios together -----------------------------------
 pars_summary <- combine_df(scenarios, "pars_summary")
 errors_summary <- combine_df(scenarios, "errors_summary")
 
-
 # Plots ----------------------------------------------------------------------
 
-ess_threshold <- 400
-rhat_threshold <- 1.05
-
-# Get any problem traces
-problem_traces <- pars_summary %>%
-  filter(ess_bulk < ess_threshold | rhat > rhat_threshold) %>%
-  select(scenario, dataset) %>%
-  distinct(scenario, dataset)
-
-n_problem_traces <- nrow(problem_traces)
-if (n_problem_traces > 0) {
-  for (i in seq_len(n_problem_traces)) {
-    scenario <- 
-      names(scenario_labels)[scenario_labels == problem_traces$scenario[i]]
-    dataset <- as.integer(problem_traces$dataset[i])
-    orderly_dependency(
-      "sim_estim",
-      quote(latest(usedby(latest(
-        name == "sim_collate" && parameter:scenario == environment:scenario)) &&
-                     parameter:dataset == environment:dataset)),
-      c("figures/problem_traces/${scenario}_${dataset}_traceplots.pdf" = 
-          "figures/traceplots.pdf",
-        "figures/problem_traces/${scenario}_${dataset}_rankplots.pdf" = 
-          "figures/rankplots.pdf")
-    )
-  }
+if (pars$comparison == "misspecification_scenarios") {
+  w_perf <- 10
+  h_perf <- 7.5
+  w_sens <- 10
+  h_sens <- 9
+  h_sens_both <- 16
+} else {
+  # Defaults for "all_scenarios"
+  w_perf <- 13
+  h_perf <- 7.5
+  w_sens <- 13
+  h_sens <- 9
+  h_sens_both <- 16
 }
 
-
-# ESS plot
-ggsave("figures/ess_plot.pdf", plot_ess(pars_summary, ess_threshold),
-       width = 21, height = 14)
-
-
-# Coverage plot
-ggsave("figures/coverage_plot.pdf", plot_coverage(pars_summary),
-       width = 21, height = 14)
-
-
-# # Median Bias plot
-# ggsave("figures/bias_plot.pdf", plot_bias(pars_summary),
-#        width = 21, height = 14)
-
-
-# Posterior delays plot
-ggsave("figures/posterior_delays.pdf", plot_posterior_delays(pars_summary),
-       width = 21, height = 14)
-
-# Posterior probability of error plot
-ggsave("figures/posterior_prob_error.pdf",
-       plot_posterior_prob_error(pars_summary),
-       width = 14, height = 4)
-
-# Event level sensitivity
-ggsave("figures/sensitivity_events.pdf",
-       plot_event_sensitivity(errors_summary), width = 14, height = 6)
-
-# Individual level sensitivity
-ggsave("figures/sensitivity_individuals.pdf",
-       plot_indiv_sensitivity(errors_summary), 
-       width = 10, height = 14)
-
-# # Plot delay performance
-# ggsave("figures/coverage_by_group.pdf",
-#        plot_coverage_by_group(pars_summary), 
-#        width = 14, height = 8)
-
-# Combined plot for Mean
-ggsave("figures/coverage_and_bias_mean.pdf",
+# Coverage and relative bias plot for Mean
+ggsave("figures_pdf/coverage_and_bias_mean.pdf",
        plot_performance_figure(pars_summary, target_role = "Mean"), 
-       width = 13, height = 7.5)
+       width = w_perf, height = h_perf)
+ggsave("figures_tiff/coverage_and_bias_mean.tiff",
+       plot_performance_figure(pars_summary, target_role = "Mean"), 
+       width = w_perf, height = h_perf)
 
-# Combined plot for CV
-ggsave("figures/coverage_and_bias_cv.pdf",
+# Coverage and relative bias plot for CV
+ggsave("figures_pdf/coverage_and_bias_cv.pdf",
        plot_performance_figure(pars_summary, target_role = "CV"), 
-       width = 13, height = 7.5)
+       width = w_perf, height = h_perf)
+ggsave("figures_tiff/coverage_and_bias_cv.tiff",
+       plot_performance_figure(pars_summary, target_role = "CV"), 
+       width = w_perf, height = h_perf)
 
-# Combined plot for 95 quantile
-ggsave("figures/coverage_and_bias_q95.pdf",
+# Coverage and relative bias plot for 95th quantile
+ggsave("figures_pdf/coverage_and_bias_q95.pdf",
        plot_performance_figure(pars_summary, target_role = "95th Quantile"), 
-       width = 13, height = 7.5)
+       width = w_perf, height = h_perf)
+ggsave("figures_tiff/coverage_and_bias_q95.tiff",
+       plot_performance_figure(pars_summary, target_role = "95th Quantile"), 
+       width = w_perf, height = h_perf)
 
+# Sensitivity - 50% threshold
+ggsave("figures_pdf/sensitivity_50.pdf",
+       plot_sensitivity_figure(errors_summary, target_threshold = 0.5),
+       width = w_sens, height = h_sens)
+ggsave("figures_tiff/sensitivity_50.tiff",
+       plot_sensitivity_figure(errors_summary, target_threshold = 0.5),
+       width = w_sens, height = h_sens)
+
+# Sensitivity - 95% threshold
+ggsave("figures_pdf/sensitivity_95.pdf",
+       plot_sensitivity_figure(errors_summary, target_threshold = 0.95),
+       width = w_sens, height = h_sens)
+ggsave("figures_tiff/sensitivity_95.tiff",
+       plot_sensitivity_figure(errors_summary, target_threshold = 0.95),
+       width = w_sens, height = h_sens)
+
+# Specificity - 50% threshold
+ggsave("figures_pdf/specificity_50.pdf",
+       plot_specificity_figure(errors_summary, target_threshold = 0.5),
+       width = w_sens, height = h_sens)
+ggsave("figures_tiff/specificity_50.tiff",
+       plot_specificity_figure(errors_summary, target_threshold = 0.5),
+       width = w_sens, height = h_sens)
+
+# Specificity - 95% threshold
+ggsave("figures_pdf/specificity_95.pdf",
+       plot_specificity_figure(errors_summary, target_threshold = 0.95),
+       width = w_sens, height = h_sens)
+ggsave("figures_tiff/specificity_95.tiff",
+       plot_specificity_figure(errors_summary, target_threshold = 0.95),
+       width = w_sens, height = h_sens)
+
+# Specificity - both thresholds in the same figure
+ggsave("figures_pdf/specificity_50_and_95.pdf",
+       plot_all_specificity(errors_summary),
+       width = w_sens, height = h_sens_both)
+ggsave("figures_tiff/specificity_50_and_95.tiff",
+       plot_all_specificity(errors_summary),
+       width = w_sens, height = h_sens_both)

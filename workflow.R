@@ -125,7 +125,7 @@ high_error <-
 hipercow_bundle_result(high_error)
 
 
-## sample sizes
+# Sample sizes
 
 very_small_sample <- 
   hipercow::task_create_bulk_expr(
@@ -193,6 +193,7 @@ short_delays <-
 
 hipercow_bundle_result(short_delays)
 
+# Variability
 
 high_variability <- 
   hipercow::task_create_bulk_expr(
@@ -215,6 +216,7 @@ low_variability <-
 
 hipercow_bundle_result(low_variability)
 
+# Lognormal
 
 lognormal_delays <- 
   hipercow::task_create_bulk_expr(
@@ -226,6 +228,7 @@ lognormal_delays <-
 
 hipercow_bundle_result(lognormal_delays)
 
+# Same mean delay
 
 same_mean_delays <- 
   hipercow::task_create_bulk_expr(
@@ -237,6 +240,7 @@ same_mean_delays <-
 
 hipercow_bundle_result(same_mean_delays)
 
+# Misspecify distribution
 
 misspecify_gamma <- 
   hipercow::task_create_bulk_expr(
@@ -437,98 +441,16 @@ task_result(misspecify_lognormal_collate)
 
 # Visualisations -------------------------------------------------------------
 
-## sanity check diagnostics -----------------------
-
-resources <- hipercow_resources(cores = 1)
-sanity <- task_create_expr(
-  orderly::orderly_run(
-    "sim_comparison",
-    parameters = list(comparison = "sanity")),
-  resources = resources
-)
-
-task_info(sanity)
-task_result(sanity) # "20260811-200905-79a4a27d"
-
-## variable error diagnostics -----------------------
-
-variable_error <- task_create_expr(
-  orderly::orderly_run(
-    "sim_comparison",
-    parameters = list(comparison = "variable_error")),
-  resources = resources
-)
-
-task_info(variable_error)
-task_result(variable_error) # "20260811-200910-e999c1d3"
-
-## variable group sample size -----------------------
-
-variable_sample <- task_create_expr(
-  orderly::orderly_run(
-    "sim_comparison",
-    parameters = list(comparison = "variable_sample_size")),
-  resources = resources
-)
-
-task_info(variable_sample)
-task_result(variable_sample) # "20260811-200916-c38e53ce"
-
-
-## variable delay diagnostics -----------------------
-
-variable_delays <- task_create_expr(
-  orderly::orderly_run(
-    "sim_comparison",
-    parameters = list(comparison = "variable_delay_length")),
-  resources = resources
-)
-
-task_info(variable_delays)
-task_result(variable_delays) # "20260811-200919-052a1fe2"
-
-## variable cv -----------------------
-
-variable_cv <- task_create_expr(
-  orderly::orderly_run(
-    "sim_comparison",
-    parameters = list(comparison = "variable_delay_cv")),
-  resources = resources
-)
-
-task_info(variable_cv)
-task_result(variable_cv) # "20260811-200924-ad009317"
-
-
-## variable delay type -----------------------
-
-variable_distr <- task_create_expr(
-  orderly::orderly_run(
-    "sim_comparison",
-    parameters = list(comparison = "variable_delay_distribution")),
-  resources = resources
-)
-
-task_info(variable_distr)
-task_result(variable_distr) # "20260811-200930-de3d95be"
-
-## variable delay means vs all delays with the same mean -----------------------
-
-same_delay_mean <- task_create_expr(
-  orderly::orderly_run(
-    "sim_comparison",
-    parameters = list(comparison = "same_delay_means")),
-  resources = resources
-)
-
-task_info(same_delay_mean)
-task_result(same_delay_mean) # "20260811-204247-bb25bb07"
-
-## All together ----------------------------------------------------------------
-
 all_scenarios <- task_create_expr(
   orderly::orderly_run(
     "sim_comparison",
     parameters = list(comparison = "all_scenarios")),
-  resources = resources
+  resources = hipercow_resources(cores = 1)
+)
+
+misspecification_scenarios <- task_create_expr(
+  orderly::orderly_run(
+    "sim_comparison",
+    parameters = list(comparison = "misspecification_scenarios")),
+  resources = hipercow_resources(cores = 1)
 )
