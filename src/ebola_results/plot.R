@@ -1,3 +1,18 @@
+global_group_levels <- c("community-alive", "community-dead",
+                         "hospitalised-alive", "hospitalised-dead")
+global_group_labels <- tools::toTitleCase(gsub("-", " ", global_group_levels))
+
+global_event_levels <- 
+  c("onset", "report", "hospitalisation", "discharge", "death")
+global_event_labels <- tools::toTitleCase(global_event_levels)
+
+error_type_cols <- c("correct" = "#2E6F40",
+                     "missing" =  "#00008B",
+                     "possible error" = "#F7BD03",
+                     "likely error" = "#C76E00",
+                     "highly likely error" = "#7C0A02")
+
+
 plot_events <- function(samples) {
   p_error_type <- plot_error_type(samples)
   p_est_date_diff <- plot_est_date_diff(samples)
@@ -165,21 +180,7 @@ date_to_int <- function(date, origin = "1970-01-01") {
   int
 }
 
+
 data_frame_to_array <- function(df) {
   array(unlist(df), dim(df))
 }
-
-
-global_group_levels <- c("community-alive", "community-dead",
-                         "hospitalised-alive", "hospitalised-dead")
-global_group_labels <- tools::toTitleCase(gsub("-", " ", global_group_levels))
-
-global_event_levels <- 
-  c("onset", "report", "hospitalisation", "discharge", "death")
-global_event_labels <- tools::toTitleCase(global_event_levels)
-
-error_type_cols <- c("correct" = "#2E6F40",
-                     "missing" =  "#00008B",
-                     "possible error" = "#F7BD03",
-                     "likely error" = "#C76E00",
-                     "highly likely error" = "#7C0A02")
