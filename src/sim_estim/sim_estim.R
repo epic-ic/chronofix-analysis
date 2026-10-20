@@ -39,9 +39,9 @@ if (scenario == "misspecify_gamma") {
   pars_scenario <- scenario
 }
 
-n_steps <- 30
-burnin <- 10
-thinning_factor <- 2
+n_steps <- 3000
+burnin <- 1000
+thinning_factor <- 8
 
 orderly_dependency("sim_params", "latest", 
                    c("date_params.rds",
