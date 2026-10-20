@@ -31,7 +31,8 @@ scenarios <- c("baseline",
                "high_variability",
                "low_variability",
                "lognormal_delays",
-               "same_means")
+               "same_means",
+               "dependent_delays")
 
 # Simulate data for all scenarios
 sim100 <- hipercow::task_create_bulk_expr(
@@ -262,6 +263,17 @@ misspecify_lognormal <-
     resources = hipercow::hipercow_resources(cores = 4))
 
 hipercow_bundle_result(misspecify_lognormal)
+
+
+misspecify_independent <- 
+  hipercow::task_create_bulk_expr(
+    orderly::orderly_run("sim_estim",
+                         parameters = list(scenario = "misspecify_independent",
+                                           dataset = dataset)),
+    data.frame(dataset = seq_len(100)),
+    resources = hipercow::hipercow_resources(cores = 4))
+
+hipercow_bundle_result(misspecify_independent)
 
 # Collate ------------------------------------------------------------------
 
