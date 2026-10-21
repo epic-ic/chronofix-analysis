@@ -83,7 +83,7 @@ summarise_errors <- function(samples, data) {
   ## we will only include individuals with at least two non-missing dates
   eligible <- rowSums(!is.na(data_errors[, date_cols])) > 1
   data_errors <- data_errors[eligible, , drop = FALSE]
-  sample_errors <- sample_errors[eligible, , , drop = FALSE]
+  sample_errors <- sample_errors[eligible, date_cols, , drop = FALSE]
   
   ## vector indicating whether or not the individual has at least one true error
   data_errors$individual <- 

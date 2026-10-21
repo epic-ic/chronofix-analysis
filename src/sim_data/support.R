@@ -79,6 +79,9 @@ summarise_dependent <- function(delay_info, group, outcome_event) {
     replicate(n_samp,
               r_dep_gamma(delay_info$shape[delay1], delay_info$mean[delay1],
                           delay_info$shape[delay2], delay_info$mean[delay2]))
+  ## row 1 is onset to hospitalisation, row 2 is onset to outcome_event
+  ## so convert row 2 to hospitalisation to outcome_event
+  samp[2, ] <- samp[2, ] - samp[1, ]
   
   dep_delay_info <- data.frame(
     from = c("onset", "hospitalisation"),
