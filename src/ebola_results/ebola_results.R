@@ -15,7 +15,7 @@ orderly::orderly_resource("paper_numbers.Rmd")
 
 version_check("chronofix", "0.0.15")
 
-orderly::orderly_parameters(include_retrospective = FALSE)
+pars <- orderly::orderly_parameters(include_retrospective = FALSE)
 
 orderly_dependency("ebola_fit",
                    "latest(parameter:include_retrospective == this:include_retrospective)", 
