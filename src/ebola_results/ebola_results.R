@@ -1,6 +1,7 @@
 library(chronofix)
 library(orderly)
 library(ggplot2)
+library(patchwork)
 library(rmarkdown)
 
 orderly::orderly_shared_resource("util.R")
@@ -48,7 +49,7 @@ ggsave("figures/ebola_delays_spaghetti.pdf",
        chronofix::chronofix_plot_delays(samples, plot_style = "spaghetti"),
        width = 20, height = 12)
 ggsave("figures/ebola_dates_and_errors.pdf", 
-       chronofix::chronofix_plot_events(samples),
+       plot_events(samples),
        width = 20, height = 12)
 
 ## Render rmd
