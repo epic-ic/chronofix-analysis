@@ -1,9 +1,10 @@
-filter_data <- function(data, onset_inferred = FALSE) {
+filter_data <- function(data, onset_inferred = FALSE,
+                        include_retrospective = FALSE) {
   data$row_id <- seq_len(nrow(data))
   ret <- data %>% 
     filter(EpiCaseDef == "confirmed") %>%
     filter(!is.na(FinalStatus)) %>%
-    filter(!retrospective) %>%
+    filter(!retrospective | include_retrospective) %>%
     filter(!is.na(HospitalizedEver)) %>%
     mutate(group = case_when(
       FinalStatus == "Alive" & HospitalizedEver == "Yes" ~ "hospitalised-alive",

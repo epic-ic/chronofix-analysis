@@ -14,6 +14,8 @@ source("util.R")
 
 version_check("chronofix", "0.0.13")
 
+pars <- orderly::orderly_parameters(include_retrospective = FALSE)
+
 orderly::orderly_artefact(description = "MCMC outputs", 
                           files = c("outputs/samples.rds",
                                     "outputs/data_with_onset_inferred.rds",
@@ -30,9 +32,12 @@ thinning_factor <- 8
 
 raw_data <- read.csv("rstb20160308supp1.csv")
 
-data <- filter_data(raw_data)
+data <- filter_data(raw_data,
+                    include_retrospective = pars$include_retrospective)
 data <- chronofix_prepare_data(data, id = "row_id")
-data_with_onset_inferred <- filter_data(raw_data, onset_inferred = TRUE)
+data_with_onset_inferred <- 
+  filter_data(raw_data, onset_inferred = TRUE,
+              include_retrospective = pars$include_retrospective)
 data_with_onset_inferred <- 
   chronofix_prepare_data(data_with_onset_inferred, id = "row_id")
 

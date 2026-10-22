@@ -14,7 +14,10 @@ orderly::orderly_resource("paper_numbers.Rmd")
 
 version_check("chronofix", "0.0.15")
 
-orderly_dependency("ebola_fit", "latest", 
+orderly::orderly_parameters(include_retrospective = FALSE)
+
+orderly_dependency("ebola_fit",
+                   "latest(parameter:include_retrospective == this:include_retrospective)", 
                    files = c("inputs/samples.rds" = "outputs/samples.rds",
                              "inputs/pars_summary.rds" = 
                                "outputs/pars_summary.rds",
@@ -48,7 +51,7 @@ ggsave("figures/ebola_delays_spaghetti.pdf",
        chronofix::chronofix_plot_delays(samples, plot_style = "spaghetti"),
        width = 20, height = 12)
 ggsave("figures/ebola_dates_and_errors.pdf", 
-       chronofix::chronofix_plot_events(samples),
+       plot_events(samples),
        width = 20, height = 12)
 
 ## Render rmd
