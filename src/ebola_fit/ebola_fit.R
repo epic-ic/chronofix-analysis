@@ -42,8 +42,9 @@ saveRDS(data_with_onset_inferred, "outputs/data_with_onset_inferred.rds")
 delay_map <- delay_info <- data.frame(
   from = c("onset", "onset", "onset", "onset", "onset", "onset",
            "hospitalisation", "onset", "hospitalisation"),
-  to = c("report", "report", "report", "report", "death", "hospitalisation",
-         "discharge", "hospitalisation", "death"),
+  to = c("case_report", "case_report", "case_report", "case_report",
+         "outcome_report", "hospitalisation",
+         "outcome_report", "hospitalisation", "outcome_report"),
   group = c("community-alive", "community-dead", "hospitalised-alive",
             "hospitalised-dead", "community-dead", "hospitalised-alive",
             "hospitalised-alive", "hospitalised-dead", "hospitalised-dead"),
