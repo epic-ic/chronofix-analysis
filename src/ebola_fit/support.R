@@ -13,17 +13,15 @@ filter_data <- function(data, onset_inferred = FALSE,
       FinalStatus == "Dead" & HospitalizedEver == "No" ~ "community-dead")) %>%
     mutate(onset = DateOnset,
            onset_inferred = DateOnsetInferred,
-           report = DateReport,
+           case_report = DateReport,
            hospitalisation = DateHospitalCurrentAdmit,
-           discharge = case_when(
-             group == "hospitalised-alive" ~ DateOutcomeComp,
-             group != "hospitalised-alive" ~ NA),
-           death = case_when(FinalStatus == "Dead" ~ DateOutcomeComp,
-                             FinalStatus != "Dead" ~ NA)) %>%
-    filter(!(is.na(onset) & is.na(report) & is.na(hospitalisation) & 
-               is.na(discharge) & is.na(death))) %>%
-    select(row_id, group, onset, onset_inferred, report, 
-           hospitalisation, discharge, death)
+           outcome_report = case_when(
+             group != "community-alive" ~ DateOutcomeComp,
+             group == "community-alive" ~ NA)) %>%
+    filter(!(is.na(onset) & is.na(case_report) & is.na(hospitalisation) & 
+               is.na(outcome_report))) %>%
+    select(row_id, group, onset, onset_inferred, case_report, 
+           hospitalisation, outcome_report)
   
   if (!onset_inferred) {
     ret <- ret %>% select(!onset_inferred)

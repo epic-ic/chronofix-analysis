@@ -3,8 +3,8 @@ global_group_levels <- c("community-alive", "community-dead",
 global_group_labels <- tools::toTitleCase(gsub("-", " ", global_group_levels))
 
 global_event_levels <- 
-  c("onset", "report", "hospitalisation", "discharge", "death")
-global_event_labels <- tools::toTitleCase(global_event_levels)
+  c("onset", "case_report", "hospitalisation", "outcome_report")
+global_event_labels <- tools::toTitleCase(gsub("_", " ", global_event_levels))
 
 error_type_cols <- c("correct" = "#2E6F40",
                      "missing" =  "#00008B",
