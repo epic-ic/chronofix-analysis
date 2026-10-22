@@ -1,6 +1,7 @@
 library(chronofix)
 library(orderly)
 library(ggplot2)
+library(patchwork)
 library(rmarkdown)
 
 orderly::orderly_shared_resource("util.R")
