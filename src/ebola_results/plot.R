@@ -144,7 +144,7 @@ plot_est_date_diff <- function(samples, absolute = FALSE){
   
   df <- df_prob_error %>% 
     right_join(df_est_date_diff) %>%
-    filter(!is.na(prob_error) & prob_error > 0.05) %>%
+    filter(!is.na(prob_error) & prob_error >= 0.05) %>%
     mutate(type = case_when(
       prob_error >= 0.05 & prob_error < 0.5 ~ "possible error",
       prob_error >= 0.5 & prob_error < 0.95 ~ "likely error",
