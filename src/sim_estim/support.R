@@ -56,51 +56,14 @@ summarise_pars <- function(samples, delay_info, true_prob_error,
                            variable = "prob_error",
                            true_value = true_prob_error)
   
-  get_delay_info_i <- function(i) {
-    true_mean <- true_delay_info$mean[i]
-    true_cv <- true_delay_info$cv[i]
-    
-    if (true_delay_info$distribution[i] == "gamma") {
-      true_shape <- 1 / true_cv^2
-      true_scale <- true_mean / true_shape
-      true_q95 <- stats::qgamma(0.95, shape = true_shape, scale = true_scale)
-      
-      if (delay_info$distribution[i] == "gamma") {
-        par <- c("mean", "shape", "cv", "q95")
-        true_value <- c(true_mean, true_shape, true_cv, true_q95)
-      } else {
-        par <- c("meanlog", "precisionlog", "mean", "cv", "q95")
-        true_value <- c(NA, NA, true_mean, true_cv, true_q95)
-      }
-    } else if (true_delay_info$distribution[i] == "log-normal") {
-      true_precisionlog <- 1 / log(true_cv^2 + 1)
-      true_meanlog <- log(true_mean) - 1 / (2 * true_precisionlog)
-      true_sdlog <- sqrt(1 / true_precisionlog)
-      true_q95 <- stats::qlnorm(0.95, meanlog = true_meanlog, sdlog = true_sdlog)
-      
-      if (delay_info$distribution[i] == "log-normal") {
-        par <- c("meanlog", "precisionlog", "mean", "cv", "q95")
-        true_value <- c(true_meanlog, true_precisionlog, true_mean, true_cv, true_q95)
-      } else {
-        par <- c("mean", "shape", "cv", "q95")
-        true_value <- c(true_mean, NA, true_cv, true_q95)
-      }
-    }
-    
-    delay <- paste0(delay_info$from[i], " to ", delay_info$to[i])
-    group <- delay_info$group[i]
-    
-    data.frame(par = par,
-               delay = delay,
-               group = group,
-               variable = paste0("delay", i, "_", par),
-               true_value = true_value)
-  }
-  
-  delays <- lapply(seq_len(nrow(delay_info)),
-                   get_delay_info_i) %>%
-    dplyr::bind_rows() %>% 
-    arrange(group)
+  delays <- true_delay_info
+  delays$delay_number <- seq_len(nrow(true_delay_info))
+  delays <- delays %>%
+    mutate(delay = paste0(from, " to ", to)) %>%
+    pivot_longer(c(mean, cv, shape, precisionlog, meanlog, q95),
+                 names_to = "par", values_to = "true_value") %>%
+    mutate(variable = paste0("delay", delay_number, "_", par)) %>%
+    select(par, delay, group, variable, true_value)
   
   rbind(prob_error, delays) %>%
     mutate(
@@ -120,7 +83,7 @@ summarise_errors <- function(samples, data) {
   ## we will only include individuals with at least two non-missing dates
   eligible <- rowSums(!is.na(data_errors[, date_cols])) > 1
   data_errors <- data_errors[eligible, , drop = FALSE]
-  sample_errors <- sample_errors[eligible, , , drop = FALSE]
+  sample_errors <- sample_errors[eligible, date_cols, , drop = FALSE]
   
   ## vector indicating whether or not the individual has at least one true error
   data_errors$individual <- 

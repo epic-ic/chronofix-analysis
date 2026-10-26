@@ -11,7 +11,9 @@ comparison_scenarios <- list(
   misspecification_scenarios = c(
     "baseline", "misspecify_lognormal",
     "gap1",
-    "lognormal_delays", "misspecify_gamma"
+    "lognormal_delays", "misspecify_gamma",
+    "gap7",
+    "misspecify_independent"
   )
 )
 
@@ -54,7 +56,11 @@ scenario_labels <- c(
   
   "lognormal_delays" = "Lognormal delays",
   "misspecify_gamma" = "Misspecify gamma",
-  "same_means" = "Same mean delay (7 days)"
+  "same_means" = "Same mean delay (7 days)",
+  
+  "gap7" = "      ",
+  
+  "misspecify_independent" = "Misspecify independent"
 )
 
 scenario_colours <- c(
@@ -90,7 +96,9 @@ scenario_colours <- c(
   
   "Lognormal delays" = "#F768A1",
   "Misspecify gamma" = "#F2A900",
-  "Same mean delay (7 days)" = "#7A0177"
+  "Same mean delay (7 days)" = "#7A0177",
+  
+  "Misspecify independent" = "#74C476"
 )
 
 global_delay_levels <- c("onset to report", "onset to hospitalisation",

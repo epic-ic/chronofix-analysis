@@ -28,9 +28,12 @@ if (scenario == "misspecify_gamma") {
   # baseline scenario assumes gamma delays
   pars_scenario <- "baseline" 
 } else if (scenario == "misspecify_lognormal") {
-  data_scenario <- "baseline"
   # baseline scenario assumes gamma delays
+  data_scenario <- "baseline"
   pars_scenario <- "lognormal_delays" 
+} else if (scenario == "misspecify_independent") {
+  data_scenario <- "dependent_delays"
+  pars_scenario <- "baseline"
 } else {
   data_scenario <- scenario
   pars_scenario <- scenario
@@ -47,7 +50,8 @@ orderly_dependency("sim_params", "latest",
 data_filename <- paste0("outputs/sim_data_", dataset, ".rds")
 orderly_dependency("sim_data", 
                    "latest(parameter:scenario == environment:data_scenario)", 
-                   c("sim_data.rds" = data_filename))
+                   c("sim_data.rds" = data_filename,
+                     "true_params.rds" = "outputs/true_params.rds"))
 
 orderly_artefact(description = "MCMC outputs for simulation scenarios",
                  files = c("sim_estim.rds",
@@ -61,6 +65,7 @@ orderly_artefact(description = "MCMC outputs for simulation scenarios",
 
 date_params <- readRDS("date_params.rds")
 error_params <- readRDS("error_params.rds")
+true_params <- readRDS("true_params.rds")
 scenarios <- readRDS("scenarios.rds")
 sim_data <- readRDS("sim_data.rds")
 
@@ -94,8 +99,7 @@ saveRDS(samples, "sim_estim.rds")
 
 # Summarise results and produce diagnostic plots-------------------------------
 
-true_date_model <- scenarios[[data_scenario]]$date_model
-true_delay_info <- date_params[[true_date_model]]$delay_info
+true_delay_info <- true_params$date_params$delay_info
 pars_summary <- summarise_pars(samples, delay_info, 
                                error_params[[error_model]]$prob_error,
                                true_delay_info)

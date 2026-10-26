@@ -1,9 +1,8 @@
 # Simulate data for each simulation scenario
 
-# TO DO: set up lognormal_delays, weibull_delays and other error model scenarios
-
 library(orderly)
 library(chronofix)
+library(dplyr)
 
 ## Number of data sets to simulate for each scenario
 pars <- orderly_parameters(scenario = "baseline",
@@ -30,11 +29,12 @@ scenarios <- readRDS("scenarios.rds")
 
 set.seed(1)
 
-date_params <- date_params[[scenarios[[scenario]]$date_model]]
-error_params <- error_params[[scenarios[[scenario]]$error_model]]
-  
+date_params <- date_params[[scenarios[[pars$scenario]]$date_model]]
+error_params <- error_params[[scenarios[[pars$scenario]]$error_model]]
+
 ## simulate true data
-true_data <- simulate_true_data(date_params, nsims = pars$nsims)
+true_data <- simulate_true_data(date_params, nsims = pars$nsims,
+                                scenario = pars$scenario)
   
 ## simulate errors
 for (i in seq_len(pars$nsims)) {
@@ -47,3 +47,12 @@ for (i in seq_len(pars$nsims)) {
   )
   saveRDS(res, filename)
 }
+
+date_params$delay_info <- summarise_params(date_params$delay_info, 
+                                           pars$scenario)
+true_params <- list(date_params = date_params,
+                    error_params = error_params)
+
+orderly_artefact(description = "True parameters",
+                 files = "outputs/true_params.rds")
+saveRDS(true_params, "outputs/true_params.rds")

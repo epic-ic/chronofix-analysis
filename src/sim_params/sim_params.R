@@ -16,12 +16,12 @@ source("support.R") # build_sim_params()
 # 1. setup date params
 ## baseline date params
 baseline_date_params <- tibble(
-  date_model = "baseline",
   group_size = 100,
   mean_scale = 1,
   cv_scale = 1,
   delay_distribution = "gamma",
-  same_means = FALSE
+  same_means = FALSE,
+  dependent_delays = FALSE
 )
 
 ## Create other date params by modifying the baseline
@@ -45,20 +45,20 @@ date_params <- list(
   high_variability = 
     baseline_date_params %>% mutate(cv_scale = 2),
   low_variability = 
-    baseline_date_params %>% mutate(cv_scale = 0.5)
+    baseline_date_params %>% mutate(cv_scale = 0.5),
+  dependent_delays = baseline_date_params %>% mutate(dependent_delays = TRUE)
 )
 
 date_params <- lapply(
   date_params,
   function(x) {
     build_date_params(
-      date_model  = x$date_model,
       n_per_group  = rep(x$group_size, 4),
       mean_scale   = x$mean_scale,
       cv_scale     = x$cv_scale,
       delay_distribution = x$delay_distribution,
-      same_means  = x$same_means
-    )
+      same_means  = x$same_means,
+      dependent_delays = x$dependent_delays)
   }
 )
 
@@ -130,7 +130,9 @@ scenarios <- list(
   high_variability =
     baseline_scenario %>% mutate(date_model = "high_variability"),
   low_variability = 
-    baseline_scenario %>% mutate(date_model = "low_variability")
+    baseline_scenario %>% mutate(date_model = "low_variability"),
+  dependent_delays =
+    baseline_scenario %>% mutate(date_model = "dependent_delays")
 )
 
 saveRDS(date_params, "date_params.rds")
