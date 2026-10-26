@@ -450,6 +450,14 @@ misspecify_lognormal_collate <- task_create_expr(
 )
 task_result(misspecify_lognormal_collate)
 
+## Delays misspecified as independent
+misspecify_independent_collate <- task_create_expr(
+  orderly::orderly_run(
+    "sim_collate",
+    parameters = list(scenario = "misspecify_independent")),
+  resources = resources
+)
+task_result(misspecify_independent_collate)
 
 # Visualisations -------------------------------------------------------------
 
