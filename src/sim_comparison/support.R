@@ -98,7 +98,6 @@ scenario_colours <- c(
   "Misspecify gamma" = "#F2A900",
   "Same mean delay (7 days)" = "#7A0177",
   
-  ## Temporary colour
   "Misspecify independent" = "#74C476"
 )
 
