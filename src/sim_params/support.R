@@ -47,7 +47,7 @@ build_date_params <- function(
       group = c("hospitalised-alive", "hospitalised-dead"),
       distribution = delay_distribution,
       mean = c(mean_onset_to_discharge, mean_onset_to_death),
-      cv = 0.5)
+      cv = 0.25)
     delay_info <- rbind(delay_info, delay_special)
     delay_info <- delay_info[delay_info$from != "hospitalisation", ]
   }
