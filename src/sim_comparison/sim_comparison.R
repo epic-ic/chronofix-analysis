@@ -66,6 +66,38 @@ errors_summary <- combine_df(scenarios, "errors_summary")
 
 # Plots ----------------------------------------------------------------------
 
+ess_threshold <- 400
+rhat_threshold <- 1.05
+
+# Get any problem traces
+problem_traces <- pars_summary %>%
+  filter(!(par %in% c("cv", "q95"))) %>%
+  filter(!(scenario %in% c("Lognormal delays", "Misspecify lognormal") 
+           & par == "mean")) %>%
+  filter(ess_bulk < ess_threshold | rhat > rhat_threshold) %>%
+  select(scenario, dataset) %>%
+  distinct(scenario, dataset)
+
+n_problem_traces <- nrow(problem_traces)
+if (n_problem_traces > 0) {
+  for (i in seq_len(n_problem_traces)) {
+    scenario <- 
+      names(scenario_labels)[scenario_labels == problem_traces$scenario[i]]
+    dataset <- as.integer(problem_traces$dataset[i])
+    orderly_dependency(
+      "sim_estim",
+      quote(latest(usedby(latest(
+        name == "sim_collate" && parameter:scenario == environment:scenario)) &&
+          parameter:dataset == environment:dataset)),
+      c("figures/problem_traces/${scenario}_${dataset}_traceplots.pdf" = 
+          "figures/traceplots.pdf",
+        "figures/problem_traces/${scenario}_${dataset}_rankplots.pdf" = 
+          "figures/rankplots.pdf")
+    )
+  }
+}
+
+
 if (pars$comparison == "misspecification_scenarios") {
   w_perf <- 10
   h_perf <- 7.5
