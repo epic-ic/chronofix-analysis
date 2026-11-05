@@ -8,11 +8,14 @@ library(glue)
 library(stringr)
 library(ggrastr)
 library(forcats)
+library(rmarkdown)
+library(knitr)
 
 pars <- orderly_parameters(comparison = "sanity")
 
 orderly_resource("support.R")
 orderly_resource("plot.R")
+orderly_resource("results_numbers.Rmd")
 source("support.R")
 source("plot.R")
 
@@ -54,8 +57,9 @@ orderly_artefact(files = c("figures_pdf/coverage_and_bias_mean.pdf",
                            "figures_tiff/sensitivity_95.tiff",
                            "figures_tiff/specificity_50.tiff",
                            "figures_tiff/specificity_95.tiff",
-                           "figures_tiff/specificity_50_and_95.tiff"),
-                 description = "Publication figures")
+                           "figures_tiff/specificity_50_and_95.tiff",
+                           "results_numbers.md"),
+                 description = "Publication figures and results")
 
 dir.create("figures_pdf", recursive = TRUE, showWarnings = FALSE)
 dir.create("figures_tiff", recursive = TRUE, showWarnings = FALSE)
@@ -73,7 +77,7 @@ if (pars$comparison == "misspecification_scenarios") {
   h_sens <- 9
   h_sens_both <- 16
 } else {
-  # Defaults for "all_scenarios"
+  # Defaults for "main_scenarios"
   w_perf <- 13
   h_perf <- 7.5
   w_sens <- 13
@@ -144,3 +148,16 @@ ggsave("figures_pdf/specificity_50_and_95.pdf",
 ggsave("figures_tiff/specificity_50_and_95.tiff",
        plot_all_specificity(errors_summary),
        width = w_sens, height = h_sens_both)
+
+# Numbers quoted in results text
+knitr::knit(
+  "results_numbers.Rmd",
+  output = "results_numbers.md",
+  envir = list2env(list(
+    params = list(pars_summary   = pars_summary,
+                  errors_summary = errors_summary,
+                  comparison     = pars$comparison)
+  )),
+  quiet = TRUE
+)
+
