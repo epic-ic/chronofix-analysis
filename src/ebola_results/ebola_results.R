@@ -13,7 +13,7 @@ source("support.R")
 
 orderly::orderly_resource("paper_numbers.Rmd")
 
-version_check("chronofix", "0.0.15")
+version_check("chronofix", "0.0.16")
 
 orderly_dependency("ebola_fit", "latest", 
                    files = c("inputs/samples.rds" = "outputs/samples.rds",
