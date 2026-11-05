@@ -1,0 +1,320 @@
+---
+title: "Numbers reported in the Results"
+output:
+  html_document:
+    toc: true
+params:
+  pars_summary: NULL
+  errors_summary: NULL
+  comparison: NULL
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(dplyr)
+library(stringr)
+library(knitr)
+
+pars_summary <- params$pars_summary
+errors_summary <- params$errors_summary
+comparison <- params$comparison
+
+# Formatting: coverage as whole %, bias to 1 dp
+rng_pct <- function(lo, hi) sprintf("%.0f%% to %.0f%%", lo, hi)
+rng_b   <- function(lo, hi) sprintf("%.1f%% to %.1f%%", lo, hi)
+```
+
+Comparison: **`r comparison`**. All values are calculated from the same data as the figures.
+
+```{r}
+quoted_scenario <- list(
+  main_scenarios = tribble(
+    ~table,     ~scenario,                 ~col,
+    # Delay estimation
+    "mean",     "All scenarios",           "95% CrI coverage",
+    "mean",     "All scenarios",           "50% CrI coverage",
+    "mean",     "All scenarios",           "Median rel. bias",
+    "mean",     "n = (10|20)\\)",          "Bias 2.5th-97.5th",
+    "mean",     "High variability",        "Bias 2.5th-97.5th",
+    "cv",       "All scenarios",           "95% CrI coverage",
+    "cv",       "n = 10\\)",               "Bias 2.5th-97.5th",
+    "q95",      "n = 10\\)",               "Bias 2.5th-97.5th",
+    "q95",      "All scenarios",           "95% CrI coverage",
+    "cv",       "Lognormal",               "Median rel. bias",
+    "q95",      "n = 10\\)",               "Median rel. bias",
+    "cv",       "n = 10\\)",               "Median rel. bias",
+    "q95",      "High variability",        "Median rel. bias",
+    # Error classification
+    "check_95", ".",                       "Community Alive",
+    "check_95", "Errors only",             "Community Dead",
+    "check_95", "Errors only",             "Hospitalised Alive",
+    "check_95", "Errors only",             "Hospitalised Dead",
+    "spec_95",  ".",                       "Individual: range of group medians",
+    "spec_95",  ".",                       "Event: range across group x event",
+    "spec_50",  "Small groups \\(n = 20\\)", "Event: range across group x event",
+    "spec_50",  "High error",              "Event: range across group x event",
+    "spec_50",  ".",                       "Lowest group / event"
+  ),
+  misspecification_scenarios = tribble(
+    ~table,     ~scenario,                          ~col,
+    # Delay estimation
+    "mean",     "Misspecify (gamma|lognormal)",     "Median rel. bias",
+    "cv",       "Misspecify (gamma|lognormal)",     "Median rel. bias",
+    "q95",      "Misspecify (gamma|lognormal)",     "Median rel. bias",
+    "mean",     "Misspecify independent",           "Median rel. bias",
+    "cv",       "Misspecify independent",           "Median rel. bias",
+    "q95",      "Misspecify independent",           "Median rel. bias",
+    "mean",     "Misspecify independent",           "95% CrI coverage",
+    "cv",       "Misspecify independent",           "95% CrI coverage",
+    "q95",      "Misspecify independent",           "95% CrI coverage",
+    # Error classification
+    "check_95", "Misspecify",                       "Community Alive",
+    "check_95", "Misspecify",                       "Community Dead",
+    "check_95", "Misspecify",                       "Hospitalised Alive",
+    "check_95", "Misspecify",                       "Hospitalised Dead",
+    "sens_95",  "Misspecify",                       "Individual: range of group medians",
+    "spec_95",  ".",                                "Individual: range of group medians",
+    "spec_95",  "Misspecify",                       "Event: range across group x event",
+    "spec_50",  "Misspecify",                       "Event: range across group x event"
+  )
+)
+
+highlight_scen <- function(df, tbl) {
+  q <- quoted_scenario[[comparison]]
+  if (is.null(q)) return(df)
+  q <- filter(q, table == tbl)
+  for (i in seq_len(nrow(q))) {
+    idx <- str_detect(as.character(df$scenario), q$scenario[i])
+    df[[q$col[i]]][idx] <- paste0("**", df[[q$col[i]]][idx], "**")
+  }
+  df
+}
+```
+
+# Delay estimation
+
+Each row gives the range across the delays within that scenario. Coverage is the percentage of simulations in which the CrI contained the true value. Bias is the median relative bias across simulations. The last column is the widest 2.5th-97.5th percentile range of relative bias for any delay in that scenario.
+
+```{r, results = "asis"}
+# Per delay first, then summarised to scenario level
+summarise_par <- function(pars, which_par) {
+  pars %>%
+    filter(par == which_par) %>%
+    mutate(rel_bias = (median - true_value) / true_value * 100) %>%
+    group_by(scenario, par_label) %>%
+    summarise(
+      cov_95      = mean(true_value >= q2.5 & true_value <= q97.5) * 100,
+      cov_50      = mean(true_value >= q25  & true_value <= q75)   * 100,
+      median_bias = median(rel_bias, na.rm = TRUE),
+      lower_bias  = quantile(rel_bias, 0.025, na.rm = TRUE),
+      upper_bias  = quantile(rel_bias, 0.975, na.rm = TRUE),
+      .groups = "drop"
+    )
+}
+
+scenario_table <- function(by_delay) {
+  by_delay %>%
+    summarise(
+      `95% CrI coverage`  = rng_pct(min(cov_95), max(cov_95)),
+      `50% CrI coverage`  = rng_pct(min(cov_50), max(cov_50)),
+      `Median rel. bias`  = rng_b(min(median_bias), max(median_bias)),
+      `Bias 2.5th-97.5th` = rng_b(min(lower_bias), max(upper_bias))
+    )
+}
+
+labels <- c(mean = "Mean", cv = "Coefficient of variation", q95 = "95th quantile")
+
+for (p in names(labels)) {
+  d <- summarise_par(pars_summary, p)
+  cat("\n\n## ", labels[[p]], "\n\n", sep = "")
+  print(kable(highlight_scen(bind_rows(
+    scenario_table(group_by(d, scenario)),
+    mutate(scenario_table(d), scenario = "All scenarios")
+  ), p)))
+}
+```
+
+# Error classification
+
+Calculated as in `plot.R`. Individual-level rates are per dataset and pathway group, summarised as the median (IQR) across the 100 datasets. Event-level rates are pooled across datasets for each group and event, as in the heatmaps. **Bold** cells are quoted in the Results text.
+
+```{r}
+# Cells quoted in the text
+quoted_individual <- tribble(
+  ~threshold, ~group,              ~col,
+  0.95,       "Community Alive",   "Individual sensitivity",
+  0.95,       "Hospitalised Dead", "Individual sensitivity"
+)
+
+quoted_event <- tribble(
+  ~threshold, ~group,               ~event,   ~col,
+  0.95,       "Community Alive",    "onset",  "Sensitivity",
+  0.95,       "Community Alive",    "report", "Sensitivity",
+  0.95,       "Community Dead",     "death",  "Sensitivity",
+  0.95,       "Community Dead",     "onset",  "Sensitivity",
+  0.95,       "Hospitalised Dead",  "death",  "Sensitivity",
+  0.95,       "Hospitalised Alive", "onset",  "Sensitivity",
+  0.50,       "Community Alive",    "onset",  "Sensitivity",
+  0.50,       "Community Alive",    "report", "Sensitivity"
+)
+
+# Bold the quoted cells in a formatted table
+highlight <- function(df, quoted) {
+  for (i in seq_len(nrow(quoted))) {
+    q   <- quoted[i, ]
+    idx <- df$threshold == q$threshold & as.character(df$group) == q$group
+    if ("event" %in% names(q)) idx <- idx & df$event == q$event
+    df[[q$col]][idx] <- paste0("**", df[[q$col]][idx], "**")
+  }
+  df
+}
+
+ind <- errors_summary %>%
+  filter(event == "individual") %>%
+  mutate(
+    sens = if_else(n_true_errors > 0,
+                   n_true_errors_flagged / n_true_errors * 100, NA_real_),
+    spec = if_else(n_true_non_errors > 0,
+                   (n_true_non_errors - n_false_positives) / n_true_non_errors * 100, NA_real_)
+  )
+
+ind_group <- ind %>%
+  group_by(scenario, threshold, group) %>%
+  summarise(
+    sens_med = median(sens, na.rm = TRUE),
+    sens_q25 = quantile(sens, 0.25, na.rm = TRUE),
+    sens_q75 = quantile(sens, 0.75, na.rm = TRUE),
+    spec_med = median(spec, na.rm = TRUE),
+    spec_q25 = quantile(spec, 0.25, na.rm = TRUE),
+    spec_q75 = quantile(spec, 0.75, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Drop events that don't occur in a group
+ev <- errors_summary %>%
+  filter(event != "individual") %>%
+  group_by(scenario, threshold, group, event) %>%
+  summarise(
+    sens = if_else(sum(n_true_errors) > 0,
+                   sum(n_true_errors_flagged) / sum(n_true_errors) * 100, NA_real_),
+    spec = if_else(sum(n_true_non_errors) > 0,
+                   (sum(n_true_non_errors) - sum(n_false_positives)) /
+                     sum(n_true_non_errors) * 100, NA_real_),
+    .groups = "drop"
+  ) %>%
+  filter(!(is.na(sens) & is.na(spec)))
+
+rng1 <- function(x) if (all(is.na(x))) NA_character_ else
+  sprintf("%.1f%% to %.1f%%", min(x, na.rm = TRUE), max(x, na.rm = TRUE))
+
+scenario_error_table <- function(which, thr) {
+  med <- paste0(which, "_med")
+  i <- ind_group %>%
+    filter(threshold == thr, !is.na(.data[[med]])) %>%
+    group_by(scenario) %>%
+    summarise(`Individual: range of group medians` = rng1(.data[[med]]))
+  e <- ev %>%
+    filter(threshold == thr, !is.na(.data[[which]])) %>%
+    group_by(scenario) %>%
+    summarise(
+      `Event: range across group x event` = rng1(.data[[which]]),
+      `Lowest group / event` =
+        paste(group[which.min(.data[[which]])], event[which.min(.data[[which]])], sep = " / ")
+    )
+  inner_join(i, e, by = "scenario")
+}
+```
+
+```{r, results = "asis"}
+err_labels <- c(sens = "Sensitivity", spec = "Specificity")
+
+   col_key <- function(w) paste0(
+  "Individual column: range of the per-group median ", tolower(w),
+  " across the 100 datasets. Event columns: range across the heatmap tiles (",
+  tolower(w), " pooled across datasets for each group and event), and the lowest tile.\n\n"
+)
+
+for (thr in c(0.95, 0.5)) {
+  for (key in names(err_labels)) {
+    cat("\n\n## ", err_labels[[key]], " (", thr * 100, "% threshold)\n\n", sep = "")
+    cat(col_key(err_labels[[key]]))
+    print(kable(highlight_scen(scenario_error_table(key, thr), paste0(key, "_", thr * 100))))
+  }
+}
+```
+
+## Baseline scenario by pathway group
+
+```{r, results = "asis"}
+for (thr in c(0.95, 0.5)) {
+  cat("\n\n### ", thr * 100, "% threshold\n\n", sep = "")
+
+  ind_group %>%
+    filter(str_detect(scenario, "Baseline"), threshold == thr) %>%
+    transmute(threshold, group,
+              `Individual sensitivity` = sprintf("%.0f%% (%.0f%% to %.0f%%)", sens_med, sens_q25, sens_q75),
+              `Individual specificity` = sprintf("%.1f%% (%.1f%% to %.1f%%)", spec_med, spec_q25, spec_q75)) %>%
+    arrange(group) %>%
+    highlight(quoted_individual) %>%
+    select(-threshold) %>%
+    kable() %>%
+    print()
+
+  ev %>%
+    filter(str_detect(scenario, "Baseline"), threshold == thr) %>%
+    transmute(threshold, group, event,
+              Sensitivity = sprintf("%.1f%%", sens),
+              Specificity = sprintf("%.2f%%", spec)) %>%
+    arrange(group, event) %>%
+    highlight(quoted_event) %>%
+    select(-threshold) %>%
+    kable() %>%
+    print()
+}
+```
+
+## Checks for claims across scenarios
+
+### Event-level sensitivity by group (95% threshold)
+
+Lowest and highest event-level sensitivity in each pathway group. Checks whether community-alive < community-dead < hospitalised in every scenario.
+
+```{r}
+ev %>%
+  filter(threshold == 0.95, !is.na(sens)) %>%
+  group_by(scenario, group) %>%
+  summarise(sens = sprintf("%.1f%% to %.1f%%", min(sens), max(sens)), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = group, values_from = sens) %>%
+  highlight_scen("check_95") %>%
+  kable()
+```
+
+### Does lowering the threshold increase sensitivity everywhere?
+
+Group and event combinations where sensitivity at the 50% threshold is lower than at 95%.
+
+```{r}
+decreases <- ev %>%
+  filter(!is.na(sens)) %>%
+  select(scenario, group, event, threshold, sens) %>%
+  tidyr::pivot_wider(names_from = threshold, values_from = sens) %>%
+  filter(`0.5` < `0.95`)
+
+if (nrow(decreases) == 0) {
+  cat("No decreases: sensitivity is higher at the 50% threshold for every scenario, group and event.")
+} else {
+  kable(decreases, digits = 1)
+}
+```
+
+# Convergence
+
+```{r}
+pars_summary %>%
+  group_by(scenario) %>%
+  summarise(
+    `% R-hat < 1.01` = mean(rhat < 1.01, na.rm = TRUE) * 100,
+    `% R-hat < 1.05` = mean(rhat < 1.05, na.rm = TRUE) * 100
+  ) %>%
+  kable(digits = 1)
+```
