@@ -14,7 +14,7 @@ hipercow_provision(method = "pkgdepends")
 # Create a named list containing the simulation parameters for all scenarios
 orderly_run("sim_params")
 
-## all simulation scenarios
+## main simulation scenarios
 scenarios <- c("baseline",
                "low_missingness",
                "no_missing",
@@ -459,14 +459,15 @@ misspecify_independent_collate <- task_create_expr(
 )
 task_result(misspecify_independent_collate)
 
-# Visualisations -------------------------------------------------------------
+# Visualisations and %s for text ----------------------------------------------
 
-all_scenarios <- task_create_expr(
+main_scenarios <- task_create_expr(
   orderly::orderly_run(
     "sim_comparison",
-    parameters = list(comparison = "all_scenarios")),
+    parameters = list(comparison = "main_scenarios")),
   resources = hipercow_resources(cores = 1)
 )
+task_result(main_scenarios)
 
 misspecification_scenarios <- task_create_expr(
   orderly::orderly_run(
@@ -474,3 +475,4 @@ misspecification_scenarios <- task_create_expr(
     parameters = list(comparison = "misspecification_scenarios")),
   resources = hipercow_resources(cores = 1)
 )
+task_result(misspecification_scenarios)
