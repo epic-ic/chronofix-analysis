@@ -1,6 +1,8 @@
 library(chronofix)
 library(orderly)
 library(ggplot2)
+library(dplyr)
+library(tidyr)
 library(patchwork)
 library(rmarkdown)
 
@@ -43,14 +45,30 @@ chronofix::chronofix_linelist(samples,
 
 dir.create("figures", showWarnings = FALSE)
 ggsave("figures/ebola_delays_ribbon.pdf", 
-       chronofix::chronofix_plot_delays(samples, plot_style = "ribbon"),
+       chronofix::chronofix_plot_delays(samples, plot_style = "ribbon",
+                                        show_title = FALSE,
+                                        show_legend = FALSE),
        width = 20, height = 12)
 ggsave("figures/ebola_delays_spaghetti.pdf", 
-       chronofix::chronofix_plot_delays(samples, plot_style = "spaghetti"),
+       chronofix::chronofix_plot_delays(samples, plot_style = "spaghetti",
+                                        show_title = FALSE,
+                                        show_legend = FALSE),
        width = 20, height = 12)
 ggsave("figures/ebola_dates_and_errors.pdf", 
        plot_events(samples),
-       width = 20, height = 12)
+       width = 12, height = 7.2)
+
+ggsave("figures/ebola_individual1.pdf", 
+       chronofix::chronofix_plot_individual(samples, id = 76),
+       width = 12, height = 9)
+
+ggsave("figures/ebola_individual2.pdf", 
+       chronofix::chronofix_plot_individual(samples, id = 1637),
+       width = 12, height = 9)
+
+ggsave("figures/ebola_individual3.pdf", 
+       chronofix::chronofix_plot_individual(samples, id = 3703),
+       width = 12, height = 9)
 
 ## Render rmd
 rmarkdown::render("paper_numbers.Rmd", output_dir = "outputs")

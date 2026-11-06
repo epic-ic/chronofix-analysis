@@ -8,6 +8,14 @@ knitr::opts_chunk$set(echo = TRUE)
 options(width = 80)
 ```
 
+## Delay mean estimates
+```{r, echo = FALSE}
+pars_summary %>% 
+    filter(par == "mean", 
+           delay %in% c("onset to case_report", "onset to hospitalisation")) %>%
+    select(delay, group, mean, median, q2.5, q97.5)
+```
+
 
 ## Number of missing onset dates
 
