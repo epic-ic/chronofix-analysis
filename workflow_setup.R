@@ -1,7 +1,7 @@
 # Shared setup for workflow_local.R and workflow_cluster.R: scenario lists and
 # helpers.
 #
-# The simulation parameters for each simulated dataset are defined in
+# The simulation parameters for each scenario are defined in
 # src/sim_params/sim_params.R, and the scenarios shown in each figure are
 # listed in src/sim_comparison/support.R. If you add a scenario, update those
 # files and this one.
