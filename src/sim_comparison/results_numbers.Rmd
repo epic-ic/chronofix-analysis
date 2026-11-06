@@ -53,7 +53,7 @@ quoted_scenario <- list(
     "spec_95",  ".",                       "Event: range across group x event",
     "spec_50",  "Small groups \\(n = 20\\)", "Event: range across group x event",
     "spec_50",  "High error",              "Event: range across group x event",
-    "spec_50",  ".",                       "Lowest group / event"
+    "spec_50",  "^(?!Missing dates only|No errors)", "Lowest group / event"
   ),
   misspecification_scenarios = tribble(
     ~table,     ~scenario,                          ~col,
@@ -228,7 +228,7 @@ scenario_error_table <- function(which, thr) {
 ```{r, results = "asis"}
 err_labels <- c(sens = "Sensitivity", spec = "Specificity")
 
-   col_key <- function(w) paste0(
+col_key <- function(w) paste0(
   "Individual column: range of the per-group median ", tolower(w),
   " across the 100 datasets. Event columns: range across the heatmap tiles (",
   tolower(w), " pooled across datasets for each group and event), and the lowest tile.\n\n"
@@ -317,4 +317,92 @@ pars_summary %>%
     `% R-hat < 1.05` = mean(rhat < 1.05, na.rm = TRUE) * 100
   ) %>%
   kable(digits = 1)
+```
+
+# Quick look-up
+
+Claims in the Results text, the value(s) as written in the text currently, and the value calculated here. If the columns disagree, update the text.
+
+```{r}
+dl  <- lapply(c(mean = "mean", cv = "cv", q95 = "q95"),
+              function(p) summarise_par(pars_summary, p))
+mn <- dl$mean; cv <- dl$cv; q95 <- dl$q95
+
+f0 <- function(x) sprintf("%.0f%%", x)
+f1 <- function(x) sprintf("%.1f%%", x)
+r0 <- function(x) sprintf("%.0f%% to %.0f%%", min(x, na.rm = TRUE), max(x, na.rm = TRUE))
+r1 <- function(x) sprintf("%.1f%% to %.1f%%", min(x, na.rm = TRUE), max(x, na.rm = TRUE))
+sc <- function(df, pattern) filter(df, str_detect(as.character(scenario), pattern))
+bias_pct <- function(df) r1(c(df$lower_bias, df$upper_bias))
+
+ev95 <- filter(ev, threshold == 0.95)
+ev50 <- filter(ev, threshold == 0.5)
+ig95 <- filter(ind_group, threshold == 0.95)
+
+if (comparison == "main_scenarios") {
+  base_ev <- sc(ev, "Baseline")
+  lowest50 <- ev50 %>%
+    group_by(scenario) %>%
+    filter(n_distinct(round(spec, 6)) > 1) %>%
+    summarise(lowest = as.character(group[which.min(spec)]))
+  
+  lowest50_err <- filter(lowest50, !str_detect(scenario, "Missing dates only|No errors"))
+
+  lookup <- tribble(
+    ~Claim,                                               ~Text,              ~Report,
+    "Mean: 95% CrI coverage, all scenarios",              "88% to 100%",      r0(mn$cov_95),
+    "Mean: 50% CrI coverage, all scenarios",              "36% to 64%",       r0(mn$cov_50),
+    "Mean: median relative bias, all scenarios",          "-8.1% to 2.1%",    r1(mn$median_bias),
+    "Mean: bias 2.5th-97.5th, n = 10",                    "largest effect on precision",           bias_pct(sc(mn, "n = 10\\)")),
+    "Mean: bias 2.5th-97.5th, n = 20",                    "largest effect on precision",           bias_pct(sc(mn, "n = 20\\)")),
+    "Mean: bias 2.5th-97.5th, high variability",          "largest effect on precision",            bias_pct(sc(mn, "High variability")),
+    "CV: 95% CrI coverage, all scenarios",                "87% to 100%",      r0(cv$cov_95),
+    "q95: 95% CrI coverage, all scenarios",               "87% to 100%",      r0(q95$cov_95),
+    "CV: lowest median bias, n = 10",                     "-14.9%",           f1(min(sc(cv, "n = 10\\)")$median_bias)),
+    "q95: lowest median bias, n = 10",                    "-12.5%",           f1(min(sc(q95, "n = 10\\)")$median_bias)),
+    "q95: lowest median bias, high variability",          "-8.1%",            f1(min(sc(q95, "High variability")$median_bias)),
+    "CV: median bias, log-normal delays",                 "3.6% to 9.5%",     r1(sc(cv, "Lognormal")$median_bias),
+    "Baseline: individual sensitivity (95%), group medians", "88% to 100%",   r0(sc(ig95, "Baseline")$sens_med),
+    "Baseline: community-alive individual sensitivity (95%)", "100%",         f0(filter(sc(ig95, "Baseline"), group == "Community Alive")$sens_med),
+    "Baseline: community-alive event sensitivity (95%)",  "below 1%",         r1(filter(base_ev, threshold == 0.95, group == "Community Alive")$sens),
+    "Baseline: community-dead event sensitivity (95%)",   "53% to 55%",       r1(filter(base_ev, threshold == 0.95, group == "Community Dead")$sens),
+    "Baseline: hospitalised event sensitivity (95%)",     "67% to 79%",       r1(filter(base_ev, threshold == 0.95, str_detect(group, "Hospitalised"))$sens),
+    "Community-alive event sensitivity (95%), max over scenarios", "below 2%", f1(max(filter(ev95, group == "Community Alive")$sens, na.rm = TRUE)),
+    "Errors only: community-dead event sensitivity (95%)", "84% to 86%",      r1(filter(sc(ev95, "Errors only"), group == "Community Dead")$sens),
+    "Errors only: hospitalised event sensitivity (95%)",  "81% to 91%",       r1(filter(sc(ev95, "Errors only"), str_detect(group, "Hospitalised"))$sens),
+    "Baseline: community-alive event sensitivity (50%)",  "58% to 59%",       r1(filter(base_ev, threshold == 0.5, group == "Community Alive")$sens),
+    "Sensitivity lower at 50% than 95% (any cell)",       "no",             as.character(nrow(decreases)),
+    "Individual specificity (95%), lowest group median",  "100%",             f1(min(ig95$spec_med, na.rm = TRUE)),
+    "Event specificity (95%), minimum",                   "99.8%",            f1(min(ev95$spec, na.rm = TRUE)),
+    "Event specificity (50%), minimum excl. high error",  "95.9%",            f1(min(filter(ev50, !str_detect(scenario, "High error"))$spec, na.rm = TRUE)),
+    "High error: event specificity (50%), minimum",       "80.9%",            f1(min(sc(ev50, "High error")$spec, na.rm = TRUE)),
+    "Scenarios with errors where community-alive is lowest (50% spec)", "all", sprintf("%d of %d", sum(lowest50_err$lowest == "Community Alive"), nrow(lowest50_err))
+  )
+}
+
+if (comparison == "misspecification_scenarios") {
+  ind_pat <- "Misspecify independent"
+
+  lookup <- tribble(
+    ~Claim,                                               ~Text,              ~Report,
+    "Mean: median bias, wrong distribution family",       "-2.6% to 1.8%",    r1(sc(mn, "Misspecify (gamma|lognormal)")$median_bias),
+    "Log-normal fitted as gamma: CV median bias",         "-11.8% to -8.3%",  r1(sc(cv, "Misspecify gamma")$median_bias),
+    "Log-normal fitted as gamma: q95 median bias",        "-9.2% to -6.0%",   r1(sc(q95, "Misspecify gamma")$median_bias),
+    "Gamma fitted as log-normal: CV median bias",         "14.4% to 19.8%",   r1(sc(cv, "Misspecify lognormal")$median_bias),
+    "Gamma fitted as log-normal: q95 median bias",        "7.6% to 11.4%",    r1(sc(q95, "Misspecify lognormal")$median_bias),
+    "Correlated delays: median bias, mean/CV/q95",        "-4.2% to 6.9%",    r1(c(sc(mn, ind_pat)$median_bias, sc(cv, ind_pat)$median_bias, sc(q95, ind_pat)$median_bias)),
+    "Correlated delays: 95% CrI coverage, mean and q95",  "91% to 98%",       r0(c(sc(mn, ind_pat)$cov_95, sc(q95, ind_pat)$cov_95)),
+    "Correlated delays: 95% CrI coverage, CV minimum",    "84%",              f0(min(sc(cv, ind_pat)$cov_95)),
+    "Community-alive event sensitivity (95%), max",       "below 1%",         f1(max(filter(sc(ev95, "Misspecify"), group == "Community Alive")$sens, na.rm = TRUE)),
+    "Pattern held: max community-dead vs min hospitalised sensitivity (95%)",       "CD < hosp",        sprintf("%s vs %s",
+                                                                                f1(max(filter(sc(ev95, "Misspecify"), group == "Community Dead")$sens, na.rm = TRUE)),
+                                                                                f1(min(filter(sc(ev95, "Misspecify"), str_detect(group, "Hospitalised"))$sens, na.rm = TRUE))),
+    "Gamma fitted as log-normal: individual sensitivity (95%)", "81% to 95%", r0(sc(ig95, "Misspecify lognormal")$sens_med),
+    "Other misspecification: individual sensitivity (95%)", "88% to 100%",    r0(sc(ig95, "Misspecify (gamma|independent)")$sens_med),
+    "Event specificity (95%), minimum",                   "99.9%",            f1(min(sc(ev95, "Misspecify")$spec, na.rm = TRUE)),
+    "Sensitivity lower at 50% than 95% (any cell)",       "no",             as.character(nrow(decreases))
+  )
+}
+
+if (exists("lookup")) kable(lookup) else cat("No look-up defined for this comparison.")
 ```
