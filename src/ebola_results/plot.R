@@ -47,7 +47,7 @@ plot_error_type <- function(samples) {
     scale_x_continuous(labels = scales::percent) +
     labs(title = "Date classification",
          y = "",
-         x = "") +
+         x = "Percentage") +
     theme_bw() +
     theme(strip.text = element_text(size = 9, face = "bold", angle = 270),
           panel.border = element_rect(colour = "darkgrey", fill = NA,
@@ -162,7 +162,7 @@ plot_est_date_diff <- function(samples, absolute = FALSE){
     theme_bw() +
     labs(title = "Mean difference between estimated and observed date",
          y = "",
-         x = "") +
+         x = "Mean difference") +
     theme(strip.text = element_text(size = 9, face = "bold", angle = 270),
           panel.border = element_rect(colour = "darkgrey", fill = NA,
                                       linewidth = 1))
