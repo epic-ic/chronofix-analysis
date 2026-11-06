@@ -18,7 +18,7 @@ source("support.R")
 source("plot.R")
 source("util.R")
 
-version_check("chronofix", "0.0.13")
+version_check("chronofix", "0.0.16")
 
 scenario <- pars$scenario
 dataset <- pars$dataset

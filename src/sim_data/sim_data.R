@@ -18,7 +18,7 @@ source("support.R")
 orderly_shared_resource("util.R")
 source("util.R")
 
-version_check("chronofix", "0.0.4")
+version_check("chronofix", "0.0.16")
 
 dir.create("outputs")
 
