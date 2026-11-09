@@ -11,7 +11,7 @@ library(forcats)
 library(rmarkdown)
 library(knitr)
 
-pars <- orderly_parameters(comparison = "sanity")
+pars <- orderly_parameters(comparison = "main_scenarios")
 
 orderly_resource("support.R")
 orderly_resource("plot.R")
