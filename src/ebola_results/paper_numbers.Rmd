@@ -4,18 +4,32 @@ output: html_document
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, comment = NA)
 options(width = 80)
 ```
 
 ## Delay mean estimates
 ```{r, echo = FALSE}
-pars_summary %>% 
-    filter(par == "mean", 
-           delay %in% c("onset to case_report", "onset to hospitalisation")) %>%
-    select(delay, group, mean, median, q2.5, q97.5)
+options(width = 100)
+delay_table <- pars_summary %>%
+    filter(par %in% c("mean", "cv", "shape", "rate")) %>%
+    mutate(delay = paste0(gsub("_", " ", delay), " (", group, ")")) %>%
+    mutate(value = sprintf("%.2f (%.2f-%.2f)", median, q2.5, q97.5)) %>%
+    select(par, delay, value) %>%
+    pivot_wider(names_from = par, values_from = value) %>%
+    rename(Delay = delay, Mean = mean, CV = cv, Shape = shape, Rate = rate) %>%
+    select(Delay, Mean, CV, Shape, Rate)
+delay_table
 ```
 
+```{r, echo = FALSE}
+
+latex_table <- knitr::kable(delay_table, format = "latex", 
+                            booktabs = TRUE, align = "lcccc",
+                            linesep = "") %>%
+               row_spec(0, bold = TRUE)
+print(latex_table)
+```
 
 ## Number of missing onset dates
 
