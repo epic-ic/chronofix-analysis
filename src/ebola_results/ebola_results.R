@@ -5,6 +5,7 @@ library(dplyr)
 library(tidyr)
 library(patchwork)
 library(rmarkdown)
+library(kableExtra)
 
 orderly::orderly_shared_resource("util.R")
 source("util.R")
