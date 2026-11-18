@@ -22,10 +22,13 @@ summarise_observed <- function(samples) {
                    data[[from]][data$group == group], na.rm = TRUE)
     median <- median(data[[to]][data$group == group] - 
                        data[[from]][data$group == group], na.rm = TRUE)
+    stdev <- sqrt(var(data[[to]][data$group == group] - 
+                        data[[from]][data$group == group], na.rm = TRUE))
     
     data.frame(Delay = delay,
                Observed_Mean = as.numeric(mean),
-               Observed_Median = as.numeric(median))
+               Observed_Median = as.numeric(median),
+               Observed_CV = as.numeric(stdev) / as.numeric(mean))
   }
   
   lapply(seq_len(nrow(delay_map)), summarise1) %>%

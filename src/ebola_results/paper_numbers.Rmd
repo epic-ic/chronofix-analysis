@@ -52,7 +52,35 @@ sum(prop_individual_has_errors >= 0.95)
 round(sum(prop_individual_has_errors >= 0.95) / n_individuals * 100, 2)
 ```
 
-## Delay parameter estimates
+## Delay estimates comparison with observed
+```{r, echo = FALSE}
+options(width = 100)
+comparison_table <- pars_summary %>%
+    filter(par %in% c("mean", "median", "cv")) %>%
+    mutate(delay = paste0(gsub("_", " ", delay), " (", group, ")")) %>%
+    mutate(value = sprintf("%.2f (%.2f-%.2f)", median, q2.5, q97.5)) %>%
+    select(par, delay, value) %>%
+    pivot_wider(names_from = par, values_from = value) %>%
+    rename(Delay = delay, "Estimated Mean" = mean, "Estimated Median" = median,
+           "Estimated CV" = cv) %>%
+    select(Delay, Mean, Median, CV) %>%
+    right_join(summarise_observed(samples))
+comparison_table
+```
+
+### LaTeX version
+```{r, echo = FALSE}
+
+latex_table <- knitr::kable(comparison_table, format = "latex", 
+                            booktabs = TRUE, align = "lcccccc",
+                            col.names = gsub("_", " ", names(comparison_table)),
+                            linesep = "", digits = 2,
+                            format.args = list(nsmall = 2)) %>%
+               row_spec(0, bold = TRUE)
+print(latex_table)
+```
+
+## Delay parameter estimates (for supplement)
 ```{r, echo = FALSE}
 options(width = 100)
 delay_table <- pars_summary %>%
@@ -72,33 +100,6 @@ delay_table
 latex_table <- knitr::kable(delay_table, format = "latex", 
                             booktabs = TRUE, align = "lcccc",
                             linesep = "") %>%
-               row_spec(0, bold = TRUE)
-print(latex_table)
-```
-
-## Delay estimates comparison with observed
-```{r, echo = FALSE}
-options(width = 100)
-comparison_table <- pars_summary %>%
-    filter(par %in% c("mean", "median")) %>%
-    mutate(delay = paste0(gsub("_", " ", delay), " (", group, ")")) %>%
-    mutate(value = round(median, 2)) %>%
-    select(par, delay, value) %>%
-    pivot_wider(names_from = par, values_from = value) %>%
-    rename(Delay = delay, Mean = mean, Median = median) %>%
-    select(Delay, Mean, Median) %>%
-    right_join(summarise_observed(samples))
-comparison_table
-```
-
-### LaTeX version
-```{r, echo = FALSE}
-
-latex_table <- knitr::kable(comparison_table, format = "latex", 
-                            booktabs = TRUE, align = "lcccc",
-                            col.names = gsub("_", " ", names(comparison_table)),
-                            linesep = "", digits = 2,
-                            format.args = list(nsmall = 2)) %>%
                row_spec(0, bold = TRUE)
 print(latex_table)
 ```
