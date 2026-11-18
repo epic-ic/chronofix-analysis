@@ -8,6 +8,50 @@ knitr::opts_chunk$set(echo = TRUE, comment = NA)
 options(width = 80)
 ```
 
+## Posterior error probability median and CrI
+```{r, echo = FALSE}
+i <- pars_summary$par == "probability of error"
+sprintf("%.4f (%.4f-%.4f)", pars_summary$median[i], pars_summary$q2.5[i], 
+        pars_summary$q97.5[i])
+```
+
+## Number of individuals
+```{r, echo = FALSE}
+nrow(samples$data)
+```
+
+## Number of individuals with at least one erroneous date in at least 50% of samples
+```{r, echo = FALSE}
+error_indicators <- samples$augmented_data$error_indicators
+n_samples <- dim(error_indicators)[3]
+n_individuals <- dim(error_indicators)[1]
+  
+## n_individuals by n_dates array of proportion of samples where the date is
+## an error 
+individual_has_errors <- 
+  apply(error_indicators, c(1, 3), function(x) sum(x, na.rm = TRUE)) > 0
+## n_individuals vector of proportion of samples where the individual has
+## as least one error
+prop_individual_has_errors <- 
+  apply(individual_has_errors, 1, sum) / n_samples
+sum(prop_individual_has_errors >= 0.5)
+```
+
+### As a percentage
+```{r, echo = FALSE}
+round(sum(prop_individual_has_errors >= 0.5) / n_individuals * 100, 2)
+```
+
+## Number of individuals with at least one erroneous date in at least 95% of samples
+```{r, echo = FALSE}
+sum(prop_individual_has_errors >= 0.95)
+```
+
+### As a percentage
+```{r, echo = FALSE}
+round(sum(prop_individual_has_errors >= 0.95) / n_individuals * 100, 2)
+```
+
 ## Delay parameter estimates
 ```{r, echo = FALSE}
 options(width = 100)
@@ -21,6 +65,7 @@ delay_table <- pars_summary %>%
     select(Delay, Mean, CV, Shape, Rate)
 delay_table
 ```
+
 ### LaTeX version
 ```{r, echo = FALSE}
 
