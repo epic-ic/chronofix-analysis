@@ -1,5 +1,5 @@
 comparison_scenarios <- list(
-  all_scenarios = c(
+  main_scenarios = c(
     "baseline", 
     "gap1", "low_missingness", "no_missing", "no_error", "no_error_no_missing",
     "gap2", "low_error", "high_error",

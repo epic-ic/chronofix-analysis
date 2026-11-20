@@ -25,3 +25,4 @@ furrr
 future
 forcats
 globals
+rmarkdown
