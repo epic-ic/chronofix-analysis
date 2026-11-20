@@ -57,26 +57,38 @@ round(sum(prop_individual_has_errors >= 0.95) / n_individuals * 100, 2)
 options(width = 100)
 comparison_table <- pars_summary %>%
     filter(par %in% c("mean", "median", "cv")) %>%
-    mutate(delay = paste0(gsub("_", " ", delay), " (", group, ")")) %>%
+    mutate(delay = gsub("_", " ", delay)) %>%
     mutate(value = sprintf("%.2f (%.2f-%.2f)", median, q2.5, q97.5)) %>%
-    select(par, delay, value) %>%
+    select(par, delay, group, value) %>%
     pivot_wider(names_from = par, values_from = value) %>%
-    rename(Delay = delay, "Estimated Mean" = mean, "Estimated Median" = median,
-           "Estimated CV" = cv) %>%
-    select(Delay, Mean, Median, CV) %>%
-    right_join(summarise_observed(samples))
+    select(group, delay, mean, median, cv) %>%
+    rename(Delay = delay, Group = group, Estimated_Mean = mean,
+           Estimated_Median = median, Estimated_CV = cv) %>%
+    right_join(summarise_observed(samples)) %>%
+    select(Group, Delay, Estimated_Mean, Observed_Mean, Estimated_Median,
+           Observed_Median, Estimated_CV, Observed_CV) %>%
+    arrange(Group)
+
 comparison_table
 ```
 
 ### LaTeX version
 ```{r, echo = FALSE}
-
-latex_table <- knitr::kable(comparison_table, format = "latex", 
-                            booktabs = TRUE, align = "lcccccc",
-                            col.names = gsub("_", " ", names(comparison_table)),
+groups <- table(comparison_table$Group)
+comparison_table <- comparison_table %>% select(!Group)
+latex_table <- knitr::kable(comparison_table,
+                            format = "latex", booktabs = TRUE, 
+                            align = "lcccccc", 
+                            col.names = gsub("_.+", "",
+                                             names(comparison_table)),
                             linesep = "", digits = 2,
                             format.args = list(nsmall = 2)) %>%
-               row_spec(0, bold = TRUE)
+               row_spec(0, bold = TRUE) %>%
+               add_header_above(c(" ", "Mean" = 2, 
+                                  "Median" = 2, "CV" = 2),
+                                bold = TRUE) %>%
+               group_rows(index = groups, indent = FALSE)
+               
 print(latex_table)
 ```
 
@@ -85,22 +97,26 @@ print(latex_table)
 options(width = 100)
 delay_table <- pars_summary %>%
     filter(par %in% c("mean", "cv", "shape", "rate")) %>%
-    mutate(delay = paste0(gsub("_", " ", delay), " (", group, ")")) %>%
+    mutate(delay = gsub("_", " ", delay)) %>%
     mutate(value = sprintf("%.2f (%.2f-%.2f)", median, q2.5, q97.5)) %>%
-    select(par, delay, value) %>%
+    select(group, par, delay, value) %>%
     pivot_wider(names_from = par, values_from = value) %>%
-    rename(Delay = delay, Mean = mean, CV = cv, Shape = shape, Rate = rate) %>%
-    select(Delay, Mean, CV, Shape, Rate)
+    rename(Group = group, Delay = delay, Mean = mean,
+           CV = cv, Shape = shape, Rate = rate) %>%
+    select(Group, Delay, Mean, CV, Shape, Rate) %>%
+    arrange(Group)
 delay_table
 ```
 
 ### LaTeX version
 ```{r, echo = FALSE}
-
+groups <- table(delay_table$Group)
+delay_table <- delay_table %>% select(!Group)
 latex_table <- knitr::kable(delay_table, format = "latex", 
                             booktabs = TRUE, align = "lcccc",
                             linesep = "") %>%
-               row_spec(0, bold = TRUE)
+               row_spec(0, bold = TRUE) %>%
+               group_rows(index = groups, indent = FALSE)
 print(latex_table)
 ```
 

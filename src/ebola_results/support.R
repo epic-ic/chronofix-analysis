@@ -16,7 +16,7 @@ summarise_observed <- function(samples) {
     from <- delay_map$from[i]
     to <- delay_map$to[i]
     group <- delay_map$group[i]
-    delay <- gsub("_", " ", paste0(from, " to ",  to, " (", group, ")"))
+    delay <- gsub("_", " ", paste0(from, " to ",  to))
     
     mean <- mean(data[[to]][data$group == group] - 
                    data[[from]][data$group == group], na.rm = TRUE)
@@ -26,6 +26,7 @@ summarise_observed <- function(samples) {
                         data[[from]][data$group == group], na.rm = TRUE))
     
     data.frame(Delay = delay,
+               Group = group,
                Observed_Mean = as.numeric(mean),
                Observed_Median = as.numeric(median),
                Observed_CV = as.numeric(stdev) / as.numeric(mean))
