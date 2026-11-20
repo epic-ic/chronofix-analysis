@@ -142,5 +142,21 @@ sum(n_in_credible_set_by_group)
 
 ### As a percentage of missing onset dates
 ```{r, echo = FALSE}
-sum(n_in_credible_set_by_group) / sum(n_onset_missing_by_group) * 100
+round(sum(n_in_credible_set_by_group) / sum(n_onset_missing_by_group) * 100, 1)
+```
+
+# Number of missing onset dates where date inferred by Garske et al are in not in our posterior samples
+```{r, echo = FALSE}
+is_in_posterior_sample <- 
+  unlist(lapply(onset_missing, 
+                function(i) data_with_onset_inferred$onset_inferred[i] %in%
+                  unique(as.Date(floor(samples$augmented_data$estimated_dates[i, 1, ])))))
+n_not_in_posterior_sample_by_group <- 
+  table(samples$data$group[onset_missing[!is_in_posterior_sample]])
+sum(n_not_in_posterior_sample_by_group)
+```
+
+### As a percentage of missing onset dates
+```{r, echo = FALSE}
+round(sum(n_not_in_posterior_sample_by_group) / sum(n_onset_missing_by_group) * 100, 1)
 ```
