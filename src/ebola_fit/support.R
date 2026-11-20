@@ -32,6 +32,61 @@ filter_data <- function(data, onset_inferred = FALSE) {
 
 summarise_pars <- function(samples, delay_info) {
   samples_df <- posterior::as_draws_df(samples)
+  
+  for (i in seq_len(nrow(delay_info))) {
+    dist <- delay_info$distribution[i]
+    
+    if (dist == "gamma") {
+      mean_col <- paste0("delay", i, "_mean")
+      shape_col <- paste0("delay", i, "_shape")
+      rate_col <- paste0("delay", i, "_rate")
+      cv_col <- paste0("delay", i, "_cv")
+      median_col <- paste0("delay", i, "_median")
+      q95_col <- paste0("delay", i, "_q95")
+      
+      # gamma CV = 1 / sqrt(shape)
+      samples_df[[cv_col]] <- 1 / sqrt(samples_df[[shape_col]])
+      
+      # gamma rate = shape / mean
+      samples_df[[rate_col]] <- samples_df[[shape_col]] / samples_df[[mean_col]]
+      
+      # gamma median
+      samples_df[[median_col]] <- stats::qgamma(0.5, 
+                                                shape = samples_df[[shape_col]], 
+                                                rate = samples_df[[rate_col]])
+      
+      # gamma 95th quantile
+      samples_df[[q95_col]] <- stats::qgamma(0.95, 
+                                             shape = samples_df[[shape_col]], 
+                                             rate = samples_df[[rate_col]])
+      
+    } else if (dist == "log-normal") {
+      ml_col <- paste0("delay", i, "_meanlog")
+      pr_col <- paste0("delay", i, "_precisionlog")
+      mean_col <- paste0("delay", i, "_mean")
+      cv_col <- paste0("delay", i, "_cv")
+      median_col <- paste0("delay", i, "_median")
+      q95_col <- paste0("delay", i, "_q95")
+      
+      mu <- samples_df[[ml_col]]
+      tau <- samples_df[[pr_col]]
+      
+      # lognormal mean = exp(mu + 1 / (2 * tau))
+      samples_df[[mean_col]] <- exp(mu + 1 / (2 * tau))
+      # lognormal CV = sqrt(exp(1 / tau) - 1)
+      samples_df[[cv_col]]   <- sqrt(exp(1 / tau) - 1)
+      # lognormal median
+      sdlog_vec <- sqrt(1 / tau)
+      samples_df[[median_col]] <- stats::qlnorm(0.5, 
+                                                meanlog = mu, 
+                                                sdlog = sdlog_vec)
+      # lognormal 95th quantile
+      samples_df[[q95_col]] <- stats::qlnorm(0.95, 
+                                             meanlog = mu, 
+                                             sdlog = sdlog_vec)
+    }
+  }
+  
   p_quantile <- c(0.025, 0.25, 0.75, 0.975)
   summary <- 
     posterior::summarise_draws(samples_df, mean, median, sd, 
@@ -44,12 +99,10 @@ summarise_pars <- function(samples, delay_info) {
                            variable = "prob_error")
   
   get_delay_info_i <- function(i) {
-    true_mean <- delay_info$mean[i]
-    true_cv <- delay_info$cv[i]
     if (delay_info$distribution[i] == "gamma") {
-      par <- c("mean", "shape")
+      par <- c("mean", "shape", "rate", "cv", "median", "q95")
     } else if (delay_info$distribution[i] == "log-normal") {
-      par <- c("meanlog", "precisionlog")
+      par <- c("meanlog", "precisionlog", "mean", "cv", "median", "q95")
     } 
     delay <- paste0(delay_info$from[i], " to ", delay_info$to[i])
     group <- delay_info$group[i]

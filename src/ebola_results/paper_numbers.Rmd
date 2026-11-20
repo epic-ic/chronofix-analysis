@@ -4,29 +4,132 @@ output: html_document
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, comment = NA)
 options(width = 80)
 ```
 
+## Posterior error probability median and CrI
+```{r, echo = FALSE}
+i <- pars_summary$par == "probability of error"
+sprintf("%.4f (%.4f-%.4f)", pars_summary$median[i], pars_summary$q2.5[i], 
+        pars_summary$q97.5[i])
+```
 
-## Number of missing onset dates by group
+## Number of individuals
+```{r, echo = FALSE}
+nrow(samples$data)
+```
+
+## Number of individuals with at least one erroneous date in at least 50% of samples
+```{r, echo = FALSE}
+error_indicators <- samples$augmented_data$error_indicators
+n_samples <- dim(error_indicators)[3]
+n_individuals <- dim(error_indicators)[1]
+  
+## n_individuals by n_dates array of proportion of samples where the date is
+## an error 
+individual_has_errors <- 
+  apply(error_indicators, c(1, 3), function(x) sum(x, na.rm = TRUE)) > 0
+## n_individuals vector of proportion of samples where the individual has
+## as least one error
+prop_individual_has_errors <- 
+  apply(individual_has_errors, 1, sum) / n_samples
+sum(prop_individual_has_errors >= 0.5)
+```
+
+### As a percentage
+```{r, echo = FALSE}
+round(sum(prop_individual_has_errors >= 0.5) / n_individuals * 100, 2)
+```
+
+## Number of individuals with at least one erroneous date in at least 95% of samples
+```{r, echo = FALSE}
+sum(prop_individual_has_errors >= 0.95)
+```
+
+### As a percentage
+```{r, echo = FALSE}
+round(sum(prop_individual_has_errors >= 0.95) / n_individuals * 100, 2)
+```
+
+## Delay estimates comparison with observed
+```{r, echo = FALSE}
+options(width = 100)
+comparison_table <- pars_summary %>%
+    filter(par %in% c("mean", "median", "cv")) %>%
+    mutate(delay = gsub("_", " ", delay)) %>%
+    mutate(value = sprintf("%.2f (%.2f-%.2f)", median, q2.5, q97.5)) %>%
+    select(par, delay, group, value) %>%
+    pivot_wider(names_from = par, values_from = value) %>%
+    select(group, delay, mean, median, cv) %>%
+    rename(Delay = delay, Group = group, Estimated_Mean = mean,
+           Estimated_Median = median, Estimated_CV = cv) %>%
+    right_join(summarise_observed(samples)) %>%
+    select(Group, Delay, Estimated_Mean, Observed_Mean, Estimated_Median,
+           Observed_Median, Estimated_CV, Observed_CV) %>%
+    arrange(Group)
+
+comparison_table
+```
+
+### LaTeX version
+```{r, echo = FALSE}
+groups <- table(comparison_table$Group)
+comparison_table <- comparison_table %>% select(!Group)
+latex_table <- knitr::kable(comparison_table,
+                            format = "latex", booktabs = TRUE, 
+                            align = "lcccccc", 
+                            col.names = gsub("_.+", "",
+                                             names(comparison_table)),
+                            linesep = "", digits = 2,
+                            format.args = list(nsmall = 2)) %>%
+               row_spec(0, bold = TRUE) %>%
+               add_header_above(c(" ", "Mean" = 2, 
+                                  "Median" = 2, "CV" = 2),
+                                bold = TRUE) %>%
+               group_rows(index = groups, indent = FALSE)
+               
+print(latex_table)
+```
+
+## Delay parameter estimates (for supplement)
+```{r, echo = FALSE}
+options(width = 100)
+delay_table <- pars_summary %>%
+    filter(par %in% c("mean", "cv", "shape", "rate")) %>%
+    mutate(delay = gsub("_", " ", delay)) %>%
+    mutate(value = sprintf("%.2f (%.2f-%.2f)", median, q2.5, q97.5)) %>%
+    select(group, par, delay, value) %>%
+    pivot_wider(names_from = par, values_from = value) %>%
+    rename(Group = group, Delay = delay, Mean = mean,
+           CV = cv, Shape = shape, Rate = rate) %>%
+    select(Group, Delay, Mean, CV, Shape, Rate) %>%
+    arrange(Group)
+delay_table
+```
+
+### LaTeX version
+```{r, echo = FALSE}
+groups <- table(delay_table$Group)
+delay_table <- delay_table %>% select(!Group)
+latex_table <- knitr::kable(delay_table, format = "latex", 
+                            booktabs = TRUE, align = "lcccc",
+                            linesep = "") %>%
+               row_spec(0, bold = TRUE) %>%
+               group_rows(index = groups, indent = FALSE)
+print(latex_table)
+```
+
+
+## Number of missing onset dates
 
 ```{r, echo = FALSE}
 onset_missing <- which(is.na(samples$data$onset))
 n_onset_missing_by_group <- table(samples$data$group[onset_missing])
-n_onset_missing_by_group
+sum(n_onset_missing_by_group)
 ```
 
-## Percentage of onset dates missing by group
-
-```{r, echo = FALSE}
-pct_onset_missing_by_group <- 
-  n_onset_missing_by_group / table(samples$data$group) * 100
-pct_onset_missing_by_group
-```
-
-## Percentage of missing onset dates where date inferred by Garske et al are in 95% Credible Sets
-### By group
+## Number of missing onset dates where date inferred by Garske et al are in 95% Credible Sets
 ```{r, echo = FALSE}
 is_in_credible_set <- 
   unlist(lapply(onset_missing, 
@@ -34,10 +137,26 @@ is_in_credible_set <-
                   calc_credible_set(samples, i, 1, 0.95)))
 n_in_credible_set_by_group <- 
   table(samples$data$group[onset_missing[is_in_credible_set]])
-n_in_credible_set_by_group / n_onset_missing_by_group * 100
+sum(n_in_credible_set_by_group)
 ```
 
-### All groups
+### As a percentage of missing onset dates
 ```{r, echo = FALSE}
-sum(n_in_credible_set_by_group) / sum(n_onset_missing_by_group) * 100
+round(sum(n_in_credible_set_by_group) / sum(n_onset_missing_by_group) * 100, 1)
+```
+
+# Number of missing onset dates where date inferred by Garske et al are in not in our posterior samples
+```{r, echo = FALSE}
+is_in_posterior_sample <- 
+  unlist(lapply(onset_missing, 
+                function(i) data_with_onset_inferred$onset_inferred[i] %in%
+                  unique(as.Date(floor(samples$augmented_data$estimated_dates[i, 1, ])))))
+n_not_in_posterior_sample_by_group <- 
+  table(samples$data$group[onset_missing[!is_in_posterior_sample]])
+sum(n_not_in_posterior_sample_by_group)
+```
+
+### As a percentage of missing onset dates
+```{r, echo = FALSE}
+round(sum(n_not_in_posterior_sample_by_group) / sum(n_onset_missing_by_group) * 100, 1)
 ```
