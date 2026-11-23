@@ -84,8 +84,8 @@ latex_table <- knitr::kable(comparison_table,
                             linesep = "", digits = 2,
                             format.args = list(nsmall = 2)) %>%
                row_spec(0, bold = TRUE) %>%
-               add_header_above(c(" ", "Mean" = 2, 
-                                  "Median" = 2, "CV" = 2),
+               add_header_above(c(" ", "Mean (days)" = 2, 
+                                  "Median (days)" = 2, "CV" = 2),
                                 bold = TRUE) %>%
                group_rows(index = groups, indent = FALSE)
                
