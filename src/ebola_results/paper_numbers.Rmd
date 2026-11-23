@@ -84,8 +84,8 @@ latex_table <- knitr::kable(comparison_table,
                             linesep = "", digits = 2,
                             format.args = list(nsmall = 2)) %>%
                row_spec(0, bold = TRUE) %>%
-               add_header_above(c(" ", "Mean" = 2, 
-                                  "Median" = 2, "CV" = 2),
+               add_header_above(c(" ", "Mean (days)" = 2, 
+                                  "Median (days)" = 2, "CV" = 2),
                                 bold = TRUE) %>%
                group_rows(index = groups, indent = FALSE)
                
@@ -101,9 +101,9 @@ delay_table <- pars_summary %>%
     mutate(value = sprintf("%.2f (%.2f-%.2f)", median, q2.5, q97.5)) %>%
     select(group, par, delay, value) %>%
     pivot_wider(names_from = par, values_from = value) %>%
-    rename(Group = group, Delay = delay, Mean = mean,
+    rename(Group = group, Delay = delay, "Mean (days)" = mean,
            CV = cv, Shape = shape, Rate = rate) %>%
-    select(Group, Delay, Mean, CV, Shape, Rate) %>%
+    select(Group, Delay, "Mean (days)", CV, Shape, Rate) %>%
     arrange(Group)
 delay_table
 ```
