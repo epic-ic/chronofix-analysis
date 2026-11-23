@@ -1,5 +1,7 @@
 traceplots <- function(samples, burnin, pars_summary) {
   full_chains <- samples$full_chains
+  pars_summary <- pars_summary %>%
+    filter(variable %in% rownames(full_chains$pars))
   full_chains$pars <- full_chains$pars[pars_summary$variable, , ]
   rownames(full_chains$pars) <- pars_summary$par_label
   
@@ -37,6 +39,8 @@ traceplots <- function(samples, burnin, pars_summary) {
 
 rankplots <- function(samples, burnin, pars_summary) {
   full_chains <- samples$full_chains
+  pars_summary <- pars_summary %>%
+    filter(variable %in% rownames(full_chains$pars))
   full_chains$pars <- full_chains$pars[pars_summary$variable, , ]
   full_chains$pars <- full_chains$pars[, -seq_len(burnin), ]
   rownames(full_chains$pars) <- pars_summary$par_label
