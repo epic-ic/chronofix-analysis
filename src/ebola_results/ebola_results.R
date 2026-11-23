@@ -16,7 +16,7 @@ source("support.R")
 
 orderly::orderly_resource("paper_numbers.Rmd")
 
-version_check("chronofix", "0.0.17")
+version_check("chronofix", "0.0.18")
 
 orderly_dependency("ebola_fit", "latest", 
                    files = c("inputs/samples.rds" = "outputs/samples.rds",
@@ -51,7 +51,9 @@ pars_summary <- readRDS("inputs/pars_summary.rds")
 
 dir.create("outputs", showWarnings = FALSE)
 chronofix::chronofix_linelist(samples, 
-                              filename = "outputs/chronofix_linelist.xlsx")
+                              filename = "outputs/chronofix_linelist.xlsx",
+                              show_p_error = TRUE,
+                              observed_dates_tab = TRUE)
 
 dir.create("figures_pdf", showWarnings = FALSE)
 dir.create("figures_tiff", showWarnings = FALSE)
